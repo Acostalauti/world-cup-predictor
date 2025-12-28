@@ -102,27 +102,27 @@ const AdminDashboard = () => {
             Acciones rápidas
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => navigate("/admin/users")}>
               <Users className="w-5 h-5" />
               <span className="text-sm">Gestionar Usuarios</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => navigate("/admin/groups")}>
               <Trophy className="w-5 h-5" />
               <span className="text-sm">Ver Grupos</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => navigate("/admin/matches")}>
               <Calendar className="w-5 h-5" />
               <span className="text-sm">Gestionar Partidos</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => navigate("/admin/reports")}>
               <BarChart3 className="w-5 h-5" />
               <span className="text-sm">Reportes</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => navigate("/admin/settings")}>
               <Settings className="w-5 h-5" />
               <span className="text-sm">Configuración</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={() => navigate("/admin/security")}>
               <Shield className="w-5 h-5" />
               <span className="text-sm">Seguridad</span>
             </Button>
