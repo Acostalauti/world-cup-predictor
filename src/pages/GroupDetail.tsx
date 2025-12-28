@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { Users, Trophy, Calendar } from "lucide-react";
+import { Users, Trophy, Calendar, Settings, Crown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import CountdownTimer from "@/components/CountdownTimer";
 import MatchCard, { MatchStatus } from "@/components/MatchCard";
 import RankingTable from "@/components/RankingTable";
 import PredictionAlert from "@/components/PredictionAlert";
+import GroupSettings from "@/components/GroupSettings";
+import GroupMembers from "@/components/GroupMembers";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 // Mock data
 const mockMatches: Array<{
@@ -82,16 +85,39 @@ const mockRanking = [
   { id: "8", position: 8, name: "Sofía Ruiz", points: 22, isCurrentUser: false },
 ];
 
+const mockMembers = [
+  { id: "user-2", name: "María González", email: "admin-grupo@example.com", isAdmin: true, joinedAt: "Fundador", points: 38 },
+  { id: "1", name: "Carlos Pérez", email: "carlos@example.com", isAdmin: false, joinedAt: "Hace 2 sem", points: 45 },
+  { id: "2", name: "Juan García", email: "juan@example.com", isAdmin: false, joinedAt: "Hace 2 sem", points: 42 },
+  { id: "3", name: "Ana Martínez", email: "ana@example.com", isAdmin: false, joinedAt: "Hace 1 sem", points: 35 },
+  { id: "4", name: "Pedro Sánchez", email: "pedro@example.com", isAdmin: false, joinedAt: "Hace 5 días", points: 32 },
+  { id: "5", name: "Laura Gómez", email: "laura@example.com", isAdmin: false, joinedAt: "Hace 3 días", points: 28 },
+  { id: "6", name: "Diego Torres", email: "diego@example.com", isAdmin: false, joinedAt: "Hace 2 días", points: 25 },
+  { id: "7", name: "Sofía Ruiz", email: "sofia@example.com", isAdmin: false, joinedAt: "Hace 1 día", points: 22 },
+];
+
 const GroupDetail = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currentUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("matches");
+
+  // Check if current user is group admin
+  const isGroupAdmin = currentUser?.role === 'group_admin' || currentUser?.role === 'platform_admin';
 
   // Mock group info
   const group = {
     name: "Amigos de la Facu",
     playerCount: 8,
+    description: "Grupo de amigos de la facultad de ingeniería",
+    inviteCode: "PRODE2026",
+    inviteLink: "https://prode.app/join/PRODE2026",
+    scoringSystem: {
+      exactScore: 5,
+      correctResult: 3,
+      correctGoalDiff: 1,
+    },
   };
 
   const nextMatchDate = new Date("2026-06-14T18:00:00");
@@ -103,18 +129,31 @@ const GroupDetail = () => {
     });
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   const upcomingMatches = mockMatches.filter((m) => m.status === "upcoming");
   const inProgressMatches = mockMatches.filter((m) => m.status === "in_progress");
   const finishedMatches = mockMatches.filter((m) => m.status === "finished");
 
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack onLogout={() => navigate("/")} />
+      <Header userName={currentUser?.name} showBack onLogout={handleLogout} />
 
       <main className="container py-6 pb-8">
         {/* Group Header */}
         <section className="mb-6 animate-fade-in">
-          <h2 className="text-2xl font-bold text-foreground mb-2">{group.name}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-2xl font-bold text-foreground">{group.name}</h2>
+            {isGroupAdmin && (
+              <div className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium flex items-center gap-1">
+                <Crown className="w-3 h-3" />
+                Admin
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4" />
@@ -130,7 +169,7 @@ const GroupDetail = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className={`grid w-full mb-6 ${isGroupAdmin ? 'grid-cols-5' : 'grid-cols-3'}`}>
             <TabsTrigger value="matches" className="gap-1.5">
               <Calendar className="w-4 h-4" />
               <span className="hidden sm:inline">Partidos</span>
@@ -143,6 +182,18 @@ const GroupDetail = () => {
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Predicciones</span>
             </TabsTrigger>
+            {isGroupAdmin && (
+              <>
+                <TabsTrigger value="members" className="gap-1.5">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Miembros</span>
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="gap-1.5">
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Config</span>
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           {/* Matches Tab */}
@@ -235,6 +286,26 @@ const GroupDetail = () => {
               </div>
             )}
           </TabsContent>
+
+          {/* Members Tab (Admin only) */}
+          {isGroupAdmin && (
+            <TabsContent value="members" className="space-y-4">
+              <GroupMembers members={mockMembers} currentUserId={currentUser?.id || ""} />
+            </TabsContent>
+          )}
+
+          {/* Settings Tab (Admin only) */}
+          {isGroupAdmin && (
+            <TabsContent value="settings" className="space-y-4">
+              <GroupSettings
+                groupName={group.name}
+                groupDescription={group.description}
+                inviteCode={group.inviteCode}
+                inviteLink={group.inviteLink}
+                scoringSystem={group.scoringSystem}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>

@@ -1,11 +1,20 @@
 import { useState } from "react";
-import { Trophy, Mail, Lock, ArrowRight, User } from "lucide-react";
+import { Trophy, Mail, Lock, ArrowRight, User, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { mockUsers, MockUser } from "@/data/mockUsers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,25 +22,75 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedMockUser, setSelectedMockUser] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setCurrentUser } = useAuth();
+
+  const handleMockUserSelect = (userId: string) => {
+    const user = mockUsers.find((u) => u.id === userId);
+    if (user) {
+      setSelectedMockUser(userId);
+      setEmail(user.email);
+      setName(user.name);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    toast({
-      title: isLogin ? "¡Bienvenido!" : "¡Cuenta creada!",
-      description: isLogin
-        ? "Has iniciado sesión correctamente."
-        : "Tu cuenta ha sido creada. Ya puedes comenzar.",
-    });
+    const user = mockUsers.find((u) => u.email === email);
+    
+    if (user) {
+      setCurrentUser(user);
+      toast({
+        title: `¡Bienvenido, ${user.name}!`,
+        description: getRoleDescription(user.role),
+      });
+      
+      // Navigate based on role
+      if (user.role === 'platform_admin') {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      toast({
+        title: isLogin ? "¡Bienvenido!" : "¡Cuenta creada!",
+        description: isLogin
+          ? "Has iniciado sesión correctamente."
+          : "Tu cuenta ha sido creada. Ya puedes comenzar.",
+      });
+      navigate("/dashboard");
+    }
 
     setIsLoading(false);
-    navigate("/dashboard");
+  };
+
+  const getRoleDescription = (role: string) => {
+    switch (role) {
+      case 'platform_admin':
+        return 'Acceso al panel de administración de la plataforma';
+      case 'group_admin':
+        return 'Puedes gestionar tus grupos y ver configuraciones';
+      default:
+        return 'Listo para hacer predicciones';
+    }
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'platform_admin':
+        return { label: 'Admin', className: 'bg-destructive/10 text-destructive' };
+      case 'group_admin':
+        return { label: 'Admin Grupo', className: 'bg-amber-500/10 text-amber-600' };
+      default:
+        return { label: 'Jugador', className: 'bg-muted text-muted-foreground' };
+    }
   };
 
   return (
@@ -63,6 +122,33 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Mock User Selector for Testing */}
+            <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-dashed border-border">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                🧪 Testing: Seleccionar usuario
+              </Label>
+              <Select value={selectedMockUser} onValueChange={handleMockUserSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Elegir usuario de prueba..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockUsers.map((user) => {
+                    const badge = getRoleBadge(user.role);
+                    return (
+                      <SelectItem key={user.id} value={user.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{user.name}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${badge.className}`}>
+                            {badge.label}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
