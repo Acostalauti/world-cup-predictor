@@ -7,9 +7,10 @@ interface GroupCardProps {
   playerCount: number;
   userPosition: number;
   onClick: () => void;
+  isAdmin?: boolean;
 }
 
-const GroupCard = ({ name, playerCount, userPosition, onClick }: GroupCardProps) => {
+const GroupCard = ({ name, playerCount, userPosition, onClick, isAdmin }: GroupCardProps) => {
   const getMedalColor = (position: number) => {
     if (position === 1) return "medal-gold";
     if (position === 2) return "medal-silver";
