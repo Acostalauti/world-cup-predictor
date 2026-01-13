@@ -1,6 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import auth, users, groups, matches, predictions, admin
+from .database import engine, SessionLocal
+from . import sql_models, seeder
+
+# Create tables
+sql_models.Base.metadata.create_all(bind=engine)
+
+# Seed data
+db = SessionLocal()
+try:
+    seeder.seed_data(db)
+finally:
+    db.close()
 
 app = FastAPI(
     title="World Cup Predictor API",

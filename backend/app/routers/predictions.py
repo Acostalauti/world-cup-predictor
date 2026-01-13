@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
+from sqlalchemy.orm import Session
 from ..models import Prediction, CreatePredictionRequest, User
-from ..db import db
+from ..database import get_db
+from .. import crud
 from .auth import get_current_user
 import uuid
+from datetime import datetime
 
 router = APIRouter()
 
@@ -11,51 +14,47 @@ router = APIRouter()
 def get_predictions(
     userId: Optional[str] = Query(None),
     matchId: Optional[str] = Query(None),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Get predictions filtered by userId or matchId"""
-    predictions = list(db.predictions.values())
+    # NOTE: current crud.get_predictions doesn't support generic filtering in one function easily
+    # I should update crud.py or implement custom query here. 
+    # Let's implement custom query here for filter options for now.
+    
+    from .. import sql_models
+    query = db.query(sql_models.Prediction)
     
     if userId:
-        predictions = [p for p in predictions if p.userId == userId]
+        query = query.filter(sql_models.Prediction.userId == userId)
     
     if matchId:
-        predictions = [p for p in predictions if p.matchId == matchId]
-    
-    return predictions
+        query = query.filter(sql_models.Prediction.matchId == matchId)
+        
+    return query.all()
 
 @router.post("/predictions", response_model=Prediction)
 def create_prediction(
     request: CreatePredictionRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    match = db.get_match(request.matchId)
+    match = crud.get_match(db, request.matchId)
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
         
-    # Check if match is upcoming? Spec doesn't strictly require it here but logic dictates.
-    # We'll allow it for now.
-    
     prediction_id = str(uuid.uuid4())
-    # Check existing prediction handled by db.create_prediction logic or do it here to reuse ID?
-    # db.create_prediction updates if exists based on matchId/userId logic I put there? 
-    # Let's see db.py... 
-    # "existing = self.get_prediction(prediction.matchId, prediction.userId) -> update"
-    # But I generate a new ID here. 
-    # If existing, I should probably use the existing ID.
     
-    existing = db.get_prediction(request.matchId, current_user.id)
-    if existing:
-        prediction_id = existing.id
+    # Check existing logic moved to crud.create_prediction (it updates if exists)
     
-    prediction = Prediction(
-        id=prediction_id,
+    prediction_data = Prediction(
+        id=prediction_id, # Will be ignored if exists in crud implementation, or used if new
         matchId=request.matchId,
         userId=current_user.id,
         homeScore=request.homeScore,
         awayScore=request.awayScore,
-        points=None # calculated later
+        points=None
     )
     
-    saved = db.create_prediction(prediction)
+    saved = crud.create_prediction(db, prediction_data)
     return saved

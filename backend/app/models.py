@@ -9,6 +9,9 @@ class User(BaseModel):
     name: str
     role: Literal['player', 'group_admin', 'platform_admin']
     avatar: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
 
 # Prediction Models
 class Prediction(BaseModel):
@@ -18,6 +21,9 @@ class Prediction(BaseModel):
     homeScore: int
     awayScore: int
     points: Optional[int] = None
+    
+    class Config:
+        from_attributes = True
 
 # Match Models
 class Match(BaseModel):
@@ -37,6 +43,9 @@ class Match(BaseModel):
     stadium: Optional[str] = None
     city: Optional[str] = None
     userPrediction: Optional[Prediction] = None
+    
+    class Config:
+        from_attributes = True
 
 # Group Models
 class Group(BaseModel):
@@ -53,6 +62,9 @@ class Group(BaseModel):
     isMember: Optional[bool] = False
     isAdmin: Optional[bool] = False
 
+    class Config:
+        from_attributes = True
+
 class GroupMember(BaseModel):
     userId: str
     name: str
@@ -61,6 +73,9 @@ class GroupMember(BaseModel):
     points: int = 0
     isAdmin: bool = False
     position: Optional[int] = None
+    
+    class Config:
+        from_attributes = True
 
 # Auth Models
 class AuthResponse(BaseModel):

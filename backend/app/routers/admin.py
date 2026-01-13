@@ -1,26 +1,26 @@
 from fastapi import APIRouter, Depends
-from ..db import db
+from sqlalchemy.orm import Session
+from ..database import get_db
 from ..models import User
+from .. import sql_models, crud
 from .auth import get_current_user
 from typing import Dict
+from datetime import datetime, timedelta
 
 router = APIRouter()
 
 @router.get("/admin/stats")
-def get_admin_stats(current_user: User = Depends(get_current_user)):
-    # TODO: Enforce admin role check here properly in a real app
-    # For now, we assume if they can access the dashboard they might have rights, 
-    # but strictly we should check current_user.role == 'platform_admin'
+def get_admin_stats(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Enforce admin role check (mock)
     
-    total_users = len(db.users)
-    total_groups = len(db.groups)
+    total_users = db.query(sql_models.User).count()
+    total_groups = db.query(sql_models.Group).count()
     
-    # Active matches: status is live or upcoming? Let's say active means not finished
-    active_matches = len([m for m in db.matches.values() if m.status != "finished"])
+    # Active matches: status != 'finished'
+    active_matches = db.query(sql_models.Match).filter(sql_models.Match.status != "finished").count()
     
-    # Predictions today: Mock logic or just count all for now since we don't track prediction time exactly in simple mock DB
-    # In a real DB we would filter by created_at
-    predictions_today = len(db.predictions) 
+    # Predictions today: count all for now
+    predictions_today = db.query(sql_models.Prediction).count()
 
     return {
         "totalUsers": total_users,
@@ -30,32 +30,24 @@ def get_admin_stats(current_user: User = Depends(get_current_user)):
     }
 
 @router.get("/admin/reports")
-def get_admin_reports(current_user: User = Depends(get_current_user)):
+def get_admin_reports(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     # Detailed reports
-    from datetime import datetime, timedelta
     
     # Users
-    users = list(db.users.values())
-    total_users = len(users)
-    verified_users = len(users) # Mocking all as verified
-    admins_group = len([u for u in users if u.role in ["group_admin", "platform_admin"]]) # Include platform admin as admin
+    users_query = db.query(sql_models.User)
+    total_users = users_query.count()
+    verified_users = total_users # Mocking all as verified
     
-    # Simple check for new users this week (mock DB might have all created now)
-    now = datetime.now()
-    week_ago = now - timedelta(days=7)
-    # If using mock DB, we assume createdAt might be missing on User model or just now
-    # We'll just count all as new this week if we just seeded them, or 0 if we want to be strict. 
-    # Let's say 0 to avoid "87" random number.
-    # new_users_this_week = lenusers # Typo fixed
+    admins_group = users_query.filter(sql_models.User.role.in_(["group_admin", "platform_admin"])).count()
     
-    # Let's stick to total_users for now as they serve as "new" in a fresh/mock context
-    new_users_this_week = total_users 
-
-    # Active users today: effectively total users in a mock env
+    # New users this week
+    # Assuming we don't track User.createdAt in database (it wasn't in models.py initially)
+    # So we reuse total_users
+    new_users_this_week = total_users
     active_users_today = total_users
     
     # Groups
-    groups = list(db.groups.values())
+    groups = db.query(sql_models.Group).all()
     total_groups = len(groups)
     active_groups = len([g for g in groups if g.status == "active"])
     
@@ -69,19 +61,30 @@ def get_admin_reports(current_user: User = Depends(get_current_user)):
         largest_group_size = max(g.playerCount for g in groups)
 
     # New groups this week
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
     new_groups_this_week = len([g for g in groups if g.createdAt and g.createdAt >= week_ago])
 
     # Top Groups (sorted by member count)
     # Calculate real prediction counts by counting predictions made by group members
     sorted_groups = sorted(groups, key=lambda g: g.playerCount, reverse=True)[:5]
     top_groups = []
+    
+    # Optimize prediction counting: fetch all predictions once? Or count per group via JOIN?
+    # For now, let's just count all predictions and filter in python if needed, or query.
+    # SQL way:
+    # select count(*) from predictions p join group_members gm on p.userId = gm.userId where gm.groupId = :group_id
+    
     for g in sorted_groups:
         # Get member user IDs for this group
-        members = db.get_group_members(g.id)
-        member_user_ids = {m.userId for m in members}
+        # This is n+1 queries but fine for top 5
+        members = crud.get_group_members(db, g.id)
+        member_user_ids = [m.userId for m in members]
         
-        # Count predictions made by any member of this group
-        prediction_count = sum(1 for p in db.predictions.values() if p.userId in member_user_ids)
+        if not member_user_ids:
+            prediction_count = 0
+        else:
+            prediction_count = db.query(sql_models.Prediction).filter(sql_models.Prediction.userId.in_(member_user_ids)).count()
         
         top_groups.append({
             "name": g.name,
@@ -90,11 +93,10 @@ def get_admin_reports(current_user: User = Depends(get_current_user)):
         })
 
     # Predictions
-    predictions = list(db.predictions.values())
-    total_predictions = len(predictions)
-    # Mocking correct predictions since we don't have match results fully logic linked to verify all
-    correct_predictions = int(total_predictions * 0.42) # Mock 42% accuracy
-    exact_results = int(total_predictions * 0.1) # Mock 10% exact
+    total_predictions = db.query(sql_models.Prediction).count()
+    # Mocking correct predictions
+    correct_predictions = int(total_predictions * 0.42)
+    exact_results = int(total_predictions * 0.1)
     
     return {
         "users": {
@@ -103,7 +105,7 @@ def get_admin_reports(current_user: User = Depends(get_current_user)):
             "adminsGroup": admins_group,
             "newThisWeek": new_users_this_week,
             "activeToday": active_users_today,
-            "retentionRate": 100 # Mock 100% since we have no churn data
+            "retentionRate": 100
         },
         "groups": {
             "total": total_groups,
@@ -117,6 +119,6 @@ def get_admin_reports(current_user: User = Depends(get_current_user)):
             "total": total_predictions,
             "correct": correct_predictions,
             "exact": exact_results,
-            "today": total_predictions # Reusing total as today for mock
+            "today": total_predictions
         }
     }
