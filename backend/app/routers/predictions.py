@@ -1,11 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import List, Optional
 from ..models import Prediction, CreatePredictionRequest, User
 from ..db import db
 from .auth import get_current_user
 import uuid
 
 router = APIRouter()
+
+@router.get("/predictions", response_model=List[Prediction])
+def get_predictions(
+    userId: Optional[str] = Query(None),
+    matchId: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Get predictions filtered by userId or matchId"""
+    predictions = list(db.predictions.values())
+    
+    if userId:
+        predictions = [p for p in predictions if p.userId == userId]
+    
+    if matchId:
+        predictions = [p for p in predictions if p.matchId == matchId]
+    
+    return predictions
 
 @router.post("/predictions", response_model=Prediction)
 def create_prediction(

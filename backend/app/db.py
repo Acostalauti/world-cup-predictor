@@ -20,20 +20,23 @@ class MockDB:
         admin = User(id="user-admin", email="admin@example.com", name="Admin User", role="platform_admin", avatar="https://i.pravatar.cc/150?u=admin")
         player1 = User(id="user-1", email="alice@example.com", name="Alice Player", role="player", avatar="https://i.pravatar.cc/150?u=alice")
         player2 = User(id="user-2", email="bob@example.com", name="Bob Player", role="player", avatar="https://i.pravatar.cc/150?u=bob")
+        group_admin = User(id="user-group-admin", email="group_admin@example.com", name="Group Admin", role="group_admin", avatar="https://i.pravatar.cc/150?u=group_admin")
         
         self.create_user(admin)
         self.create_user(player1)
         self.create_user(player2)
+        self.create_user(group_admin)
         
         # Passwords (hashed ideally, plain for now as per previous hack)
         self.passwords["user-admin"] = "password123"
         self.passwords["user-1"] = "password123"
         self.passwords["user-2"] = "password123"
+        self.passwords["user-group-admin"] = "password123"
 
         # Groups
         group1 = Group(
             id="group-1", name="World Cup 2026 Official", description="The official prediction group.",
-            adminId="user-admin", playerCount=0, inviteCode="OFFICIAL", scoringSystem="classic",
+            adminId="user-group-admin", playerCount=0, inviteCode="OFFICIAL", scoringSystem="classic",
             createdAt=datetime.now(), status="active"
         )
         group2 = Group(
@@ -47,22 +50,41 @@ class MockDB:
         
         # Members
         self.add_group_member("group-1", GroupMember(userId="user-admin", name="Admin User", email="admin@example.com", joinedAt=datetime.now(), points=10, isAdmin=True))
+        self.add_group_member("group-1", GroupMember(userId="user-group-admin", name="Group Admin", email="group_admin@example.com", joinedAt=datetime.now(), points=0, isAdmin=True))
         self.add_group_member("group-1", GroupMember(userId="user-1", name="Alice Player", email="alice@example.com", joinedAt=datetime.now(), points=5, isAdmin=False))
         self.add_group_member("group-2", GroupMember(userId="user-1", name="Alice Player", email="alice@example.com", joinedAt=datetime.now(), points=0, isAdmin=True))
         self.add_group_member("group-2", GroupMember(userId="user-2", name="Bob Player", email="bob@example.com", joinedAt=datetime.now(), points=0, isAdmin=False))
 
-        # Matches
-        match1 = Match(
-            id="match-1", homeTeam="USA", awayTeam="England", homeFlag="🇺🇸", awayFlag="🇬🇧",
-            date=datetime.now().date(), time="14:00", status="upcoming", homeScore=None, awayScore=None
-        )
-        match2 = Match(
-            id="match-2", homeTeam="Brazil", awayTeam="France", homeFlag="🇧🇷", awayFlag="🇫🇷",
-            date=datetime.now().date(), time="18:00", status="upcoming", homeScore=None, awayScore=None
-        )
+        # Matches - Load from FIFA fixture JSON
+        try:
+            from pathlib import Path
+            from .scrapers.load_fixtures import load_fixtures_from_json
+            
+            # Get the path to the fixture JSON file
+            scrapers_dir = Path(__file__).parent / "scrapers"
+            json_path = scrapers_dir / "fixture_mundial_2026.json"
+            
+            if json_path.exists():
+                matches = load_fixtures_from_json(str(json_path))
+                for match in matches:
+                    self.create_match(match)
+                print(f"✅ Loaded {len(matches)} World Cup 2026 matches from fixture file")
+            else:
+                print(f"⚠️  Fixture file not found at {json_path}, no matches loaded")
+        except Exception as e:
+            print(f"⚠️  Error loading fixtures: {e}")
+            # Fallback to a few sample matches if fixture loading fails
+            match1 = Match(
+                id="match-1", homeTeam="USA", awayTeam="England", homeFlag="🇺🇸", awayFlag="🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+                date=datetime.now().date(), time="14:00", status="upcoming", homeScore=None, awayScore=None
+            )
+            self.create_match(match1)
+
+        # Predictions for player1 (Alice) and player2 (Bob)
+        # from .models import Prediction
         
-        self.create_match(match1)
-        self.create_match(match2)
+        # No default predictions seeded
+        pass
     
     def get_user_by_email(self, email: str) -> Optional[User]:
         for user in self.users.values():

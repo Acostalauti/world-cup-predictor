@@ -13,7 +13,17 @@ def list_matches(
     status: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    return db.get_matches(status=status)
+    matches = db.get_matches(status=status)
+    
+    # Enrich each match with user's prediction if exists
+    enriched_matches = []
+    for match in matches:
+        prediction = db.get_prediction(match.id, current_user.id)
+        match_dict = match.model_dump()
+        match_dict['userPrediction'] = prediction
+        enriched_matches.append(Match(**match_dict))
+    
+    return enriched_matches
 
 @router.post("/matches", response_model=Match, status_code=201)
 def create_match(

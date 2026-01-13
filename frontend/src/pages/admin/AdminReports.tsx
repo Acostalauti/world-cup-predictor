@@ -5,14 +5,48 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { client } from "@/api/client";
+import type { components } from "@/types/api";
+
+type AdminReports = components["schemas"]["AdminReports"];
 
 const AdminReports = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const [reports, setReports] = useState<AdminReports | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const { data } = await client.GET("/admin/reports");
+        if (data) {
+          setReports(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reports", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
+  // Use fetching data or fallback to 0/empty
+  const r = reports || {
+    users: { total: 0, verified: 0, adminsGroup: 0, newThisWeek: 0, activeToday: 0, retentionRate: 0 },
+    groups: { total: 0, active: 0, avgMembers: 0, largestGroup: 0, newThisWeek: 0, topGroups: [] },
+    predictions: { total: 0, correct: 0, exact: 0, today: 0 }
   };
 
   return (
@@ -44,10 +78,10 @@ const AdminReports = () => {
                 <Users className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground">Usuarios</span>
               </div>
-              <div className="text-2xl font-bold text-foreground">1,248</div>
+              <div className="text-2xl font-bold text-foreground">{r.users.total.toLocaleString()}</div>
               <div className="flex items-center text-xs text-green-600">
                 <TrendingUp className="w-3 h-3 mr-1" />
-                +12% esta semana
+                Nueva métrica real
               </div>
             </CardContent>
           </Card>
@@ -57,10 +91,10 @@ const AdminReports = () => {
                 <Trophy className="w-4 h-4 text-amber-500" />
                 <span className="text-xs text-muted-foreground">Grupos</span>
               </div>
-              <div className="text-2xl font-bold text-foreground">156</div>
+              <div className="text-2xl font-bold text-foreground">{r.groups.total.toLocaleString()}</div>
               <div className="flex items-center text-xs text-green-600">
                 <TrendingUp className="w-3 h-3 mr-1" />
-                +8% esta semana
+                {r.groups.newThisWeek > 0 ? `+${r.groups.newThisWeek} esta semana` : "Sin cambios"}
               </div>
             </CardContent>
           </Card>
@@ -70,10 +104,11 @@ const AdminReports = () => {
                 <Calendar className="w-4 h-4 text-green-500" />
                 <span className="text-xs text-muted-foreground">Predicciones</span>
               </div>
-              <div className="text-2xl font-bold text-foreground">45.2K</div>
+              <div className="text-2xl font-bold text-foreground">{(r.predictions.total / 1000).toFixed(1)}K</div>
               <div className="flex items-center text-xs text-green-600">
+                {/* Mocking trend for predictions as we don't have history in simple DB */}
                 <TrendingUp className="w-3 h-3 mr-1" />
-                +25% esta semana
+                Actividad reciente
               </div>
             </CardContent>
           </Card>
@@ -83,7 +118,9 @@ const AdminReports = () => {
                 <BarChart3 className="w-4 h-4 text-blue-500" />
                 <span className="text-xs text-muted-foreground">Precisión Promedio</span>
               </div>
-              <div className="text-2xl font-bold text-foreground">42%</div>
+              <div className="text-2xl font-bold text-foreground">
+                {r.predictions.total > 0 ? Math.round((r.predictions.correct / r.predictions.total) * 100) : 0}%
+              </div>
               <div className="text-xs text-muted-foreground">
                 de predicciones correctas
               </div>
@@ -111,19 +148,19 @@ const AdminReports = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Usuarios activos hoy</span>
-                      <span className="font-semibold">342</span>
+                      <span className="font-semibold">{r.users.activeToday}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Predicciones hoy</span>
-                      <span className="font-semibold">3,420</span>
+                      <span className="font-semibold">{r.predictions.today.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Nuevos grupos esta semana</span>
-                      <span className="font-semibold">12</span>
+                      <span className="font-semibold">{r.groups.newThisWeek}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Tasa de retención</span>
-                      <span className="font-semibold">78%</span>
+                      <span className="font-semibold">{r.users.retentionRate}%</span>
                     </div>
                   </div>
                 </CardContent>
@@ -135,23 +172,24 @@ const AdminReports = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {[
-                      { name: "Los Campeones", predictions: 450, members: 20 },
-                      { name: "Oficina Tech", predictions: 380, members: 15 },
-                      { name: "Familia García", predictions: 290, members: 12 },
-                      { name: "Amigos de la Facu", predictions: 180, members: 8 },
-                    ].map((group, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-muted-foreground">#{i + 1}</span>
-                          <div>
-                            <p className="font-medium text-foreground">{group.name}</p>
-                            <p className="text-xs text-muted-foreground">{group.members} miembros</p>
+                    {r.groups.topGroups.length > 0 ? (
+                      r.groups.topGroups.map((group, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-muted-foreground">#{i + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{group.name}</p>
+                              <p className="text-xs text-muted-foreground">{group.memberCount} miembros</p>
+                            </div>
                           </div>
+                          <span className="text-sm font-semibold">{group.predictionCount} pred.</span>
                         </div>
-                        <span className="text-sm font-semibold">{group.predictions} pred.</span>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4">
+                        No hay grupos activos aún.
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -167,19 +205,19 @@ const AdminReports = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Total registrados</span>
-                    <span className="font-semibold">1,248</span>
+                    <span className="font-semibold">{r.users.total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Nuevos esta semana</span>
-                    <span className="font-semibold">87</span>
+                    <span className="font-semibold">{r.users.newThisWeek}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Usuarios verificados</span>
-                    <span className="font-semibold">1,120</span>
+                    <span className="font-semibold">{r.users.verified.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Admins de grupo</span>
-                    <span className="font-semibold">156</span>
+                    <span className="font-semibold">{r.users.adminsGroup.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -195,19 +233,19 @@ const AdminReports = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Total grupos</span>
-                    <span className="font-semibold">156</span>
+                    <span className="font-semibold">{r.groups.total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Grupos activos</span>
-                    <span className="font-semibold">142</span>
+                    <span className="font-semibold">{r.groups.active.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Promedio miembros/grupo</span>
-                    <span className="font-semibold">8.5</span>
+                    <span className="font-semibold">{r.groups.avgMembers.toFixed(1)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Grupo más grande</span>
-                    <span className="font-semibold">45 miembros</span>
+                    <span className="font-semibold">{r.groups.largestGroup} miembros</span>
                   </div>
                 </div>
               </CardContent>
@@ -223,19 +261,19 @@ const AdminReports = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Total predicciones</span>
-                    <span className="font-semibold">45,200</span>
+                    <span className="font-semibold">{r.predictions.total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Predicciones correctas</span>
-                    <span className="font-semibold">18,984</span>
+                    <span className="font-semibold">{r.predictions.correct.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Resultados exactos</span>
-                    <span className="font-semibold">4,520</span>
+                    <span className="font-semibold">{r.predictions.exact.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Predicciones hoy</span>
-                    <span className="font-semibold">3,420</span>
+                    <span className="font-semibold">{r.predictions.today.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>

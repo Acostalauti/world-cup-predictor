@@ -92,10 +92,25 @@ components:
         awayScore:
           type: integer
           nullable: true
+        matchNumber:
+          type: integer
+          nullable: true
+        stage:
+          type: string
+          nullable: true
+        group:
+          type: string
+          nullable: true
+        stadium:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
         userPrediction:
           $ref: '#/components/schemas/Prediction'
           nullable: true
-      required: [id, homeTeam, awayTeam, date, start_time, status]
+      required: [id, homeTeam, awayTeam, date, status]
 
     Prediction:
       type: object

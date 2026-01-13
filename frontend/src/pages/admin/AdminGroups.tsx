@@ -12,32 +12,67 @@ import {
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { client } from "@/api/client";
+import type { components } from "@/types/api";
 
-const mockGroups = [
-  { id: "1", name: "Amigos de la Facu", playerCount: 8, createdAt: "2024-12-20", admin: "Carlos García", status: "active" },
-  { id: "2", name: "Familia García", playerCount: 12, createdAt: "2024-12-19", admin: "María López", status: "active" },
-  { id: "3", name: "Oficina Tech", playerCount: 15, createdAt: "2024-12-17", admin: "Juan Pérez", status: "active" },
-  { id: "4", name: "Grupo Barrio Norte", playerCount: 6, createdAt: "2024-12-15", admin: "Ana Martínez", status: "inactive" },
-  { id: "5", name: "Los Campeones", playerCount: 20, createdAt: "2024-12-10", admin: "Pedro Sánchez", status: "active" },
-];
+type Group = components["schemas"]["Group"];
+type User = components["schemas"]["User"];
 
 const AdminGroups = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const filteredGroups = mockGroups.filter((group) =>
-    group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    group.admin.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [groupsRes, usersRes] = await Promise.all([
+          client.GET("/groups", { params: { query: { filter: "all" } } }),
+          client.GET("/users")
+        ]);
 
-  const totalPlayers = mockGroups.reduce((acc, g) => acc + g.playerCount, 0);
+        if (groupsRes.data) {
+          setGroups(groupsRes.data);
+        }
+        if (usersRes.data) {
+          setUsers(usersRes.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch groups data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const getAdminName = (adminId: string) => {
+    const user = users.find(u => u.id === adminId);
+    return user ? user.name : "Desconocido";
+  };
+
+  const filteredGroups = groups.filter((group) => {
+    const adminName = getAdminName(group.adminId);
+    return (
+      group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      adminName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const totalPlayers = groups.reduce((acc, g) => acc + (g.playerCount || 0), 0);
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +106,7 @@ const AdminGroups = () => {
         <section className="mb-6 grid grid-cols-3 gap-3">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-foreground">{mockGroups.length}</div>
+              <div className="text-2xl font-bold text-foreground">{groups.length}</div>
               <div className="text-xs text-muted-foreground">Total Grupos</div>
             </CardContent>
           </Card>
@@ -84,7 +119,7 @@ const AdminGroups = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-foreground">
-                {mockGroups.filter((g) => g.status === "active").length}
+                {groups.filter((g) => g.status === "active").length}
               </div>
               <div className="text-xs text-muted-foreground">Activos</div>
             </CardContent>
@@ -104,17 +139,16 @@ const AdminGroups = () => {
                     <div>
                       <p className="font-medium text-foreground">{group.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        Admin: {group.admin} · {group.playerCount} jugadores
+                        Admin: {getAdminName(group.adminId)} · {group.playerCount || 0} jugadores
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        group.status === "active"
-                          ? "bg-green-500/10 text-green-600"
-                          : "bg-muted text-muted-foreground"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${group.status === "active"
+                        ? "bg-green-500/10 text-green-600"
+                        : "bg-muted text-muted-foreground"
+                        }`}
                     >
                       {group.status === "active" ? "Activo" : "Inactivo"}
                     </div>
@@ -129,7 +163,7 @@ const AdminGroups = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalles
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/admin/users')}>
                           <Users className="w-4 h-4 mr-2" />
                           Ver Miembros
                         </DropdownMenuItem>

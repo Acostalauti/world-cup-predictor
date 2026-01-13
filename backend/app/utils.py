@@ -28,3 +28,57 @@ def verify_password(plain_password, hashed_password):
 
 def get_password_hash(password):
     return password
+
+# Team flags mapping for World Cup 2026 teams
+TEAM_FLAGS = {
+    # CONCACAF
+    "México": "🇲🇽", "EE. UU.": "🇺🇸", "USA": "🇺🇸", "Canadá": "🇨🇦", "Canada": "🇨🇦",
+    "Costa Rica": "🇨🇷", "Jamaica": "🇯🇲", "Panamá": "🇵🇦", "Panama": "🇵🇦",
+    "Honduras": "🇭🇳", "Haití": "🇭🇹", "Haiti": "🇭🇹", "Curazao": "🇨🇼",
+    
+    # CONMEBOL
+    "Argentina": "🇦🇷", "Brasil": "🇧🇷", "Brazil": "🇧🇷", "Uruguay": "🇺🇾",
+    "Colombia": "🇨🇴", "Ecuador": "🇪🇨", "Paraguay": "🇵🇾", "Chile": "🇨🇱",
+    "Perú": "🇵🇪", "Peru": "🇵🇪", "Bolivia": "🇧🇴", "Venezuela": "🇻🇪",
+    
+    # UEFA
+    "España": "🇪🇸", "Spain": "🇪🇸", "Alemania": "🇩🇪", "Germany": "🇩🇪",
+    "Francia": "🇫🇷", "France": "🇫🇷", "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    "Portugal": "🇵🇹", "Países Bajos": "🇳🇱", "Netherlands": "🇳🇱",
+    "Bélgica": "🇧🇪", "Belgium": "🇧🇪", "Italia": "🇮🇹", "Italy": "🇮🇹",
+    "Croacia": "🇭🇷", "Croatia": "🇭🇷", "Suiza": "🇨🇭", "Switzerland": "🇨🇭",
+    "Dinamarca": "🇩🇰", "Denmark": "🇩🇰", "Suecia": "🇸🇪", "Sweden": "🇸🇪",
+    "Noruega": "🇳🇴", "Norway": "🇳🇴", "Polonia": "🇵🇱", "Poland": "🇵🇱",
+    "Ucrania": "🇺🇦", "Ukraine": "🇺🇦", "Serbia": "🇷🇸", "Austria": "🇦🇹",
+    "República Checa": "🇨🇿", "Czech Republic": "🇨🇿",
+    "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Gales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+    "Irlanda": "🇮🇪", "Ireland": "🇮🇪", "Turquía": "🇹🇷", "Turkey": "🇹🇷",
+    "Rumania": "🇷🇴", "Romania": "🇷🇴", "Grecia": "🇬🇷", "Greece": "🇬🇷",
+    
+    # AFC
+    "Japón": "🇯🇵", "Japan": "🇯🇵", "República de Corea": "🇰🇷", "South Korea": "🇰🇷", "Korea": "🇰🇷",
+    "Australia": "🇦🇺", "Irán": "🇮🇷", "Iran": "🇮🇷",
+    "Arabia Saudí": "🇸🇦", "Saudi Arabia": "🇸🇦", "Catar": "🇶🇦", "Qatar": "🇶🇦",
+    "Irak": "🇮🇶", "Iraq": "🇮🇶", "Emiratos Árabes Unidos": "🇦🇪", "UAE": "🇦🇪",
+    "Uzbekistán": "🇺🇿", "Uzbekistan": "🇺🇿", "Jordania": "🇯🇴", "Jordan": "🇯🇴",
+    "China": "🇨🇳", "Tailandia": "🇹🇭", "Thailand": "🇹🇭",
+    
+    # CAF
+    "Senegal": "🇸🇳", "Marruecos": "🇲🇦", "Morocco": "🇲🇦",
+    "Túnez": "🇹🇳", "Tunisia": "🇹🇳", "Argelia": "🇩🇿", "Algeria": "🇩🇿",
+    "Egipto": "🇪🇬", "Egypt": "🇪🇬", "Nigeria": "🇳🇬", "Ghana": "🇬🇭",
+    "Camerún": "🇨🇲", "Cameroon": "🇨🇲", "Costa de Marfil": "🇨🇮", "Ivory Coast": "🇨🇮",
+    "Malí": "🇲🇱", "Mali": "🇲🇱", "Burkina Faso": "🇧🇫",
+    "Sudáfrica": "🇿🇦", "South Africa": "🇿🇦",
+    "Islas de Cabo Verde": "🇨🇻", "Cape Verde": "🇨🇻",
+    
+    # OFC
+    "Nueva Zelanda": "🇳🇿", "New Zealand": "🇳🇿",
+}
+
+def get_team_flag(team_name: Optional[str]) -> str:
+    """Get the flag emoji for a team name."""
+    if team_name is None or team_name == "TBD":
+        return "🏴"  # Black flag for TBD teams
+    return TEAM_FLAGS.get(team_name, "🏳️")  # White flag as default
+

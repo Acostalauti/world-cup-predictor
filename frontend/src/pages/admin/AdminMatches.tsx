@@ -13,27 +13,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { client } from "@/api/client";
+import type { components } from "@/types/api";
 
-const mockMatches = [
-  { id: "1", homeTeam: "Argentina", awayTeam: "Francia", date: "2024-12-30", time: "16:00", status: "upcoming", homeScore: null, awayScore: null },
-  { id: "2", homeTeam: "Brasil", awayTeam: "Alemania", date: "2024-12-30", time: "19:00", status: "upcoming", homeScore: null, awayScore: null },
-  { id: "3", homeTeam: "España", awayTeam: "Portugal", date: "2024-12-29", time: "16:00", status: "live", homeScore: 1, awayScore: 1 },
-  { id: "4", homeTeam: "Inglaterra", awayTeam: "Italia", date: "2024-12-28", time: "19:00", status: "finished", homeScore: 2, awayScore: 1 },
-  { id: "5", homeTeam: "Holanda", awayTeam: "Bélgica", date: "2024-12-27", time: "16:00", status: "finished", homeScore: 0, awayScore: 3 },
-];
+type Match = components["schemas"]["Match"];
 
 const AdminMatches = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const filteredMatches = mockMatches.filter((match) =>
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const { data } = await client.GET("/matches");
+        if (data) {
+          setMatches(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch matches", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMatches();
+  }, []);
+
+  const filteredMatches = matches.filter((match) =>
     match.homeTeam.toLowerCase().includes(searchTerm.toLowerCase()) ||
     match.awayTeam.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -59,6 +73,10 @@ const AdminMatches = () => {
         return "Próximo";
     }
   };
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,7 +117,7 @@ const AdminMatches = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-foreground">
-                {mockMatches.filter((m) => m.status === "upcoming").length}
+                {matches.filter((m) => m.status === "upcoming").length}
               </div>
               <div className="text-xs text-muted-foreground">Próximos</div>
             </CardContent>
@@ -107,7 +125,7 @@ const AdminMatches = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-600">
-                {mockMatches.filter((m) => m.status === "live").length}
+                {matches.filter((m) => m.status === "live").length}
               </div>
               <div className="text-xs text-muted-foreground">En Vivo</div>
             </CardContent>
@@ -115,7 +133,7 @@ const AdminMatches = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-foreground">
-                {mockMatches.filter((m) => m.status === "finished").length}
+                {matches.filter((m) => m.status === "finished").length}
               </div>
               <div className="text-xs text-muted-foreground">Finalizados</div>
             </CardContent>

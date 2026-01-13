@@ -31,6 +31,11 @@ class Match(BaseModel):
     status: Literal['upcoming', 'live', 'finished']
     homeScore: Optional[int] = None
     awayScore: Optional[int] = None
+    matchNumber: Optional[int] = None
+    stage: Optional[str] = None
+    group: Optional[str] = None
+    stadium: Optional[str] = None
+    city: Optional[str] = None
     userPrediction: Optional[Prediction] = None
 
 # Group Models

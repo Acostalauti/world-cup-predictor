@@ -1,34 +1,64 @@
 import { Users, Trophy, Settings, Shield, BarChart3, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { mockUsers } from "@/data/mockUsers";
+import { useEffect, useState } from "react";
+import { client } from "@/api/client";
+import type { components } from "@/types/api";
 
-// Mock platform data
-const platformStats = {
-  totalUsers: 1248,
-  totalGroups: 156,
-  activeMatches: 8,
-  predictionsToday: 3420,
-};
-
-const recentGroups = [
-  { id: "1", name: "Amigos de la Facu", playerCount: 8, createdAt: "Hace 2 días" },
-  { id: "2", name: "Familia García", playerCount: 12, createdAt: "Hace 3 días" },
-  { id: "3", name: "Oficina Tech", playerCount: 15, createdAt: "Hace 5 días" },
-  { id: "4", name: "Grupo Barrio Norte", playerCount: 6, createdAt: "Hace 1 semana" },
-];
+type User = components["schemas"]["User"];
+type Group = components["schemas"]["Group"];
+type AdminStats = components["schemas"]["AdminStats"];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [recentGroups, setRecentGroups] = useState<Group[]>([]);
+  const [recentUsers, setRecentUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, groupsRes, usersRes] = await Promise.all([
+          client.GET("/admin/stats"),
+          client.GET("/groups", { params: { query: { filter: "all" } } }), // Assuming 'all' lets admin see all groups, or just GET /groups returns relevant ones
+          client.GET("/users")
+        ]);
+
+        if (statsRes.data) {
+          setStats(statsRes.data);
+        }
+        if (groupsRes.data) {
+          // Sort by creation date if available, or just take first few
+          // The mock data had 'createdAt' string, real data has 'createdAt' ISO string
+          // Real API returns Group[], mock had extra 'playerCount' which Group schema has too
+          setRecentGroups(groupsRes.data.slice(0, 5));
+        }
+        if (usersRes.data) {
+          setRecentUsers(usersRes.data.slice(0, 5));
+        }
+      } catch (error) {
+        console.error("Failed to fetch admin data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,7 +91,7 @@ const AdminDashboard = () => {
               <CardContent className="p-4 text-center">
                 <Users className="w-6 h-6 mx-auto text-primary mb-2" />
                 <div className="text-2xl font-bold text-foreground">
-                  {platformStats.totalUsers.toLocaleString()}
+                  {stats?.totalUsers.toLocaleString() || 0}
                 </div>
                 <div className="text-xs text-muted-foreground">Usuarios</div>
               </CardContent>
@@ -70,7 +100,7 @@ const AdminDashboard = () => {
               <CardContent className="p-4 text-center">
                 <Trophy className="w-6 h-6 mx-auto text-amber-500 mb-2" />
                 <div className="text-2xl font-bold text-foreground">
-                  {platformStats.totalGroups}
+                  {stats?.totalGroups.toLocaleString() || 0}
                 </div>
                 <div className="text-xs text-muted-foreground">Grupos</div>
               </CardContent>
@@ -79,7 +109,7 @@ const AdminDashboard = () => {
               <CardContent className="p-4 text-center">
                 <Calendar className="w-6 h-6 mx-auto text-green-500 mb-2" />
                 <div className="text-2xl font-bold text-foreground">
-                  {platformStats.activeMatches}
+                  {stats?.activeMatches.toLocaleString() || 0}
                 </div>
                 <div className="text-xs text-muted-foreground">Partidos Activos</div>
               </CardContent>
@@ -88,7 +118,7 @@ const AdminDashboard = () => {
               <CardContent className="p-4 text-center">
                 <BarChart3 className="w-6 h-6 mx-auto text-blue-500 mb-2" />
                 <div className="text-2xl font-bold text-foreground">
-                  {platformStats.predictionsToday.toLocaleString()}
+                  {stats?.predictionsToday.toLocaleString() || 0}
                 </div>
                 <div className="text-xs text-muted-foreground">Predicciones Hoy</div>
               </CardContent>
@@ -137,7 +167,7 @@ const AdminDashboard = () => {
           <Card>
             <CardContent className="p-0">
               <div className="divide-y divide-border">
-                {mockUsers.map((user) => (
+                {recentUsers.map((user) => (
                   <div key={user.id} className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
@@ -150,13 +180,12 @@ const AdminDashboard = () => {
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.role === 'platform_admin' 
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'platform_admin'
                         ? 'bg-destructive/10 text-destructive'
                         : user.role === 'group_admin'
-                        ? 'bg-amber-500/10 text-amber-600'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
+                          ? 'bg-amber-500/10 text-amber-600'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
                       {user.role === 'platform_admin' ? 'Admin' : user.role === 'group_admin' ? 'Admin Grupo' : 'Jugador'}
                     </div>
                   </div>
@@ -179,7 +208,7 @@ const AdminDashboard = () => {
                     <div>
                       <p className="font-medium text-foreground">{group.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {group.playerCount} jugadores · {group.createdAt}
+                        {group.playerCount || 0} jugadores · {group.createdAt ? new Date(group.createdAt).toLocaleDateString() : 'Fecha desconocida'}
                       </p>
                     </div>
                     <Button variant="ghost" size="sm">

@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { client } from "@/api/client";
 
 const scoringSystems = [
   {
@@ -35,23 +36,44 @@ const CreateGroup = () => {
   const [isCreated, setIsCreated] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const { data, error } = await client.POST("/groups", {
+        body: { name, description, scoringSystem },
+      });
 
-    const generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setInviteCode(generatedCode);
-    setIsCreated(true);
-
-    toast({
-      title: "¡Grupo creado!",
-      description: "Tu grupo ha sido creado exitosamente.",
-    });
+      if (data) {
+        setInviteCode(data.inviteCode);
+        setIsCreated(true);
+        toast({
+          title: "¡Grupo creado!",
+          description: "Tu grupo ha sido creado exitosamente.",
+        });
+      } else {
+        console.error(error);
+        toast({
+          title: "Error",
+          description: "No se pudo crear el grupo. Inténtalo de nuevo.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error inesperado.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyCode = () => {
@@ -189,11 +211,10 @@ const CreateGroup = () => {
                   {scoringSystems.map((system) => (
                     <div
                       key={system.id}
-                      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                        scoringSystem === system.id
+                      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${scoringSystem === system.id
                           ? "border-primary bg-primary/5"
                           : "border-border hover:bg-secondary/50"
-                      }`}
+                        }`}
                       onClick={() => setScoringSystem(system.id)}
                     >
                       <RadioGroupItem value={system.id} id={system.id} className="mt-0.5" />
@@ -214,8 +235,8 @@ const CreateGroup = () => {
               </CardContent>
             </Card>
 
-            <Button type="submit" size="lg" className="w-full">
-              Crear grupo
+            <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+              {isLoading ? "Creando..." : "Crear grupo"}
             </Button>
           </form>
         </div>

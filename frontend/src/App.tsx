@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -32,13 +33,13 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/groups" element={<AdminGroups />} />
-            <Route path="/admin/matches" element={<AdminMatches />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/security" element={<AdminSecurity />} />
+            <Route path="/admin" element={<ProtectedRoute requiredRole="platform_admin"><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute requiredRole="platform_admin"><AdminUsers /></ProtectedRoute>} />
+            <Route path="/admin/groups" element={<ProtectedRoute requiredRole="platform_admin"><AdminGroups /></ProtectedRoute>} />
+            <Route path="/admin/matches" element={<ProtectedRoute requiredRole="platform_admin"><AdminMatches /></ProtectedRoute>} />
+            <Route path="/admin/reports" element={<ProtectedRoute requiredRole="platform_admin"><AdminReports /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute requiredRole="platform_admin"><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/security" element={<ProtectedRoute requiredRole="platform_admin"><AdminSecurity /></ProtectedRoute>} />
             <Route path="/create-group" element={<CreateGroup />} />
             <Route path="/join-group" element={<JoinGroup />} />
             <Route path="/group/:groupId" element={<GroupDetail />} />

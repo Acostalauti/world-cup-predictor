@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import auth, users, groups, matches, predictions
+from .routers import auth, users, groups, matches, predictions, admin
 
 app = FastAPI(
     title="World Cup Predictor API",
@@ -12,6 +12,8 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",
     "http://localhost:5173", # Vite default
+    "http://localhost:8080", # Codespaces default
+    "*" # For development convenience to avoid further issues
 ]
 
 app.add_middleware(
@@ -27,6 +29,7 @@ app.include_router(users.router)
 app.include_router(groups.router)
 app.include_router(matches.router)
 app.include_router(predictions.router)
+app.include_router(admin.router)
 
 @app.get("/")
 def read_root():

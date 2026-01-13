@@ -1,0 +1,26 @@
+{
+  "name": "world-cup-predictor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && make run",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Acostalauti/world-cup-predictor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Acostalauti/world-cup-predictor/issues"
+  },
+  "homepage": "https://github.com/Acostalauti/world-cup-predictor#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
