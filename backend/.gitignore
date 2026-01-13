@@ -2,3 +2,5 @@ __pycache__
 .venv
 .pytest_cache
 *.db
+fixture_mundial_2026.json
+fixture_mundial_2026.csv

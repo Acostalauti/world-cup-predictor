@@ -11,7 +11,8 @@ from pathlib import Path
 
 if __name__ == "__main__":
     # Load fixtures
-    current_dir = Path(__file__).parent / "app" / "scrapers"
+    # Go up one level from 'tests' to 'backend', then into 'app/scrapers'
+    current_dir = Path(__file__).parent.parent / "app" / "scrapers"
     json_path = current_dir / "fixture_mundial_2026.json"
     
     print(f"Loading fixtures from: {json_path}")
