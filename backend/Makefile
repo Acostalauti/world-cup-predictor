@@ -7,7 +7,7 @@ run:
 	uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 test:
-	uv run pytest
+	uv run python -m pytest tests_integration
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

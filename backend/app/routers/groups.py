@@ -68,7 +68,7 @@ def create_group(
         name=request.name,
         description=request.description,
         adminId=current_user.id,
-        playerCount=1, # Initial count will be verified by add_group_member
+        playerCount=0, # Initial count will be verified by add_group_member
         inviteCode=invite_code,
         inviteLink=f"http://localhost:3000/join/{invite_code}", # Mock link
         scoringSystem=request.scoringSystem,
@@ -92,6 +92,7 @@ def create_group(
         points=0
     )
     
+    new_group_data.playerCount = 1
     return new_group_data
 
 @router.get("/groups/{id}", response_model=Group)
