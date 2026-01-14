@@ -12,7 +12,7 @@ const authMiddleware: Middleware = {
 };
 
 export const client = createClient<paths>({
-    baseUrl: "http://localhost:8000",
+    baseUrl: import.meta.env.VITE_API_URL || "/api",
 });
 
 client.use(authMiddleware);
