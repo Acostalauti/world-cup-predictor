@@ -7,21 +7,36 @@ from .routers import auth, users, groups, matches, predictions, admin
 from .database import engine, SessionLocal
 from . import sql_models, seeder
 
-# Create tables
-sql_models.Base.metadata.create_all(bind=engine)
-
-# Seed data
-db = SessionLocal()
-try:
-    seeder.seed_data(db)
-finally:
-    db.close()
-
 app = FastAPI(
     title="World Cup Predictor API",
     description="API for the World Cup Predictor application.",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on application startup."""
+    try:
+        print("🔄 Initializing database...")
+        
+        # Create all tables
+        sql_models.Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created")
+        
+        # Seed initial data
+        db = SessionLocal()
+        try:
+            seeder.seed_data(db)
+            print("✅ Database seeding completed")
+        finally:
+            db.close()
+            
+    except Exception as e:
+        print(f"❌ Database initialization failed: {e}")
+        # Don't raise - allow app to start, but log the error
+        import traceback
+        traceback.print_exc()
+
 
 # CORS
 origins = [
