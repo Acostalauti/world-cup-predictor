@@ -72,6 +72,88 @@ To stop and remove all data:
 docker-compose down -v
 ```
 
+## ☁️ Deployment to Render
+
+The application is configured for easy deployment to [Render](https://render.com) using a Blueprint configuration.
+
+### Prerequisites
+
+- A [Render account](https://render.com) (free tier available)
+- Your code in a GitHub, GitLab, or Bitbucket repository
+
+### Deploy with Blueprint (Recommended)
+
+The easiest way to deploy is using the included `render.yaml` Blueprint file:
+
+1. **Push the code** to your Git repository (if not already done)
+
+2. **Create a Blueprint in Render**:
+   - Go to [Render Dashboard](https://dashboard.render.com/)
+   - Click **"New"** → **"Blueprint"**
+   - Connect your repository
+   - Render will automatically detect `render.yaml` and configure:
+     - Web Service (combined frontend + backend)
+     - PostgreSQL Database
+     - Environment variables
+
+3. **Wait for deployment**:
+   - Initial build takes 5-10 minutes
+   - Database will be automatically provisioned
+   - Application will seed initial data on first startup
+
+4. **Access your app**:
+   - Render provides a URL like: `https://worldcup-predictor.onrender.com`
+   - Database automatically seeded with sample users, matches, and groups
+
+### Manual Deployment (Alternative)
+
+If you prefer to set up services manually:
+
+1. **Create PostgreSQL Database**:
+   - Go to **"New"** → **"PostgreSQL"**
+   - Name: `worldcup-db`
+   - Plan: Free (or higher)
+   - Copy the **Internal Database URL**
+
+2. **Create Web Service**:
+   - Go to **"New"** → **"Web Service"**
+   - Connect your repository
+   - Settings:
+     - **Name**: `worldcup-predictor`
+     - **Runtime**: Docker
+     - **Dockerfile Path**: `./Dockerfile`
+     - **Plan**: Free (or higher)
+   - Add Environment Variable:
+     - **Key**: `DATABASE_URL`
+     - **Value**: `<paste internal database URL>`
+   - **Health Check Path**: `/api/health`
+
+3. **Deploy**: Click "Create Web Service"
+
+### Environment Variables
+
+The application requires only one environment variable:
+
+- `DATABASE_URL`: PostgreSQL connection string (automatically set when using Blueprint)
+
+### Post-Deployment
+
+- **First login**: Use seeded credentials:
+  - Admin: `admin@example.com` / `password123`
+  - User: `alice@example.com` / `password123`
+- **Database persistence**: Data persists across deployments
+- **Free tier notes**:
+  - Services spin down after 15 minutes of inactivity
+  - First request after spin-down may take 30-60 seconds
+  - PostgreSQL free tier expires after 90 days
+
+### Troubleshooting
+
+- **Build fails**: Check Docker build works locally with `docker build -t test .`
+- **Database connection errors**: Verify `DATABASE_URL` is set correctly
+- **CORS errors**: Ensure your Render URL matches the pattern in `backend/app/main.py`
+
+
 ## 💻 Local Development
 
 ### Backend Setup

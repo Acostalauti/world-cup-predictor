@@ -28,6 +28,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost:5173", # Vite default
     "http://localhost:8080", # Codespaces default
+    "https://*.onrender.com", # Render deployment domains
     "*" # For development convenience to avoid further issues
 ]
 
