@@ -1,22 +1,53 @@
-from fastapi.testclient import TestClient
-from app.main import app
-from app.db import db
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+from app.database import Base, get_db
+from app import sql_models
 
-client = TestClient(app)
+# Use in-memory SQLite database for tests
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-# Reset DB before tests (or use a fixture if we had a proper setup, simple clear for now)
-@pytest.fixture(autouse=True)
-def run_around_tests():
-    db.users.clear()
-    db.groups.clear()
-    db.matches.clear()
-    db.predictions.clear()
-    db.group_members.clear()
-    db.passwords.clear()
-    yield
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def test_register_and_login():
+@pytest.fixture(scope="module")
+def db_engine():
+    Base.metadata.create_all(bind=engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+
+@pytest.fixture(scope="function")
+def db(db_engine):
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+    yield session
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+@pytest.fixture(scope="function", autouse=True)
+def test_client(db):
+    def override_get_db():
+        yield db
+    
+    from app.main import app
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    del app.dependency_overrides[get_db]
+
+# Use test_client fixture for all tests
+@pytest.fixture
+def client(test_client):
+    return test_client
+
+def test_register_and_login(client):
     # Register
     response = client.post("/auth/register", json={
         "email": "test@example.com",
@@ -37,7 +68,7 @@ def test_register_and_login():
     assert response.status_code == 200
     assert "token" in response.json()
 
-def test_get_me():
+def test_get_me(client):
     # Register
     response = client.post("/auth/register", json={
         "email": "test@example.com",
@@ -51,7 +82,7 @@ def test_get_me():
     assert response.status_code == 200
     assert response.json()["email"] == "test@example.com"
 
-def test_create_group():
+def test_create_group(client):
     # Register
     response = client.post("/auth/register", json={
         "email": "admin@example.com",
@@ -74,7 +105,7 @@ def test_create_group():
     assert data["isMember"] == True
     assert data["isAdmin"] == True
 
-def test_create_match():
+def test_create_match(client):
     # Register
     response = client.post("/auth/register", json={
         "email": "admin@example.com",
@@ -101,7 +132,7 @@ def test_create_match():
     assert response.status_code == 200
     assert len(response.json()) == 1
 
-def test_prediction():
+def test_prediction(client):
     # Register
     response = client.post("/auth/register", json={
         "email": "user@example.com",
