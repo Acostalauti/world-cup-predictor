@@ -5,7 +5,7 @@ def test_match_prediction_flow(client):
     # Based on current auth implementation, any user can hit protected endpoints if they have a token.
     # We'll create a user who acts as admin to create the match.
     
-    resp_user = client.post("/auth/register", json={
+    resp_user = client.post("/api/auth/register", json={
         "email": "predictor@example.com",
         "password": "password123",
         "name": "Predictor"
@@ -13,7 +13,7 @@ def test_match_prediction_flow(client):
     token = resp_user.json()["token"]
 
     # 2. Create a Match
-    match_resp = client.post("/matches", json={
+    match_resp = client.post("/api/matches", json={
         "homeTeam": "Brazil",
         "awayTeam": "Argentina",
         "date": "2026-07-10",
@@ -26,7 +26,7 @@ def test_match_prediction_flow(client):
     match_id = match_data["id"]
 
     # 3. Submit a Prediction
-    pred_resp = client.post("/predictions", json={
+    pred_resp = client.post("/api/predictions", json={
         "matchId": match_id,
         "homeScore": 3,
         "awayScore": 1
@@ -45,7 +45,7 @@ def test_match_prediction_flow(client):
     
     # Check if we can get the prediction back
     # (Assuming GET /predictions lists user predictions)
-    list_pred_resp = client.get("/predictions", headers={"Authorization": f"Bearer {token}"})
+    list_pred_resp = client.get("/api/predictions", headers={"Authorization": f"Bearer {token}"})
     if list_pred_resp.status_code == 200:
         preds = list_pred_resp.json()
         my_pred = next((p for p in preds if p["matchId"] == match_id), None)

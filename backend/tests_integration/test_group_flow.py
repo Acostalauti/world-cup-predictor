@@ -1,7 +1,7 @@
 def test_group_flow(client):
     # 1. Register two users: Admin and Player
     # Admin
-    resp_admin = client.post("/auth/register", json={
+    resp_admin = client.post("/api/auth/register", json={
         "email": "admin_group@example.com",
         "password": "password123",
         "name": "Group Admin"
@@ -10,7 +10,7 @@ def test_group_flow(client):
     admin_token = resp_admin.json()["token"]
 
     # Player
-    resp_player = client.post("/auth/register", json={
+    resp_player = client.post("/api/auth/register", json={
         "email": "player_group@example.com",
         "password": "password123",
         "name": "Group Player"
@@ -19,7 +19,7 @@ def test_group_flow(client):
     player_token = resp_player.json()["token"]
 
     # 2. Admin creates a group
-    group_resp = client.post("/groups", json={
+    group_resp = client.post("/api/groups", json={
         "name": "Integration Group",
         "description": "Integration Test Group",
         "scoringSystem": "classic"
@@ -33,7 +33,7 @@ def test_group_flow(client):
     assert group_data["playerCount"] == 1 # Admin is automatically added
 
     # 3. Player joins the group using the code
-    join_resp = client.post(f"/groups/join", json={
+    join_resp = client.post(f"/api/groups/join", json={
         "inviteCode": code
     }, headers={"Authorization": f"Bearer {player_token}"})
     
@@ -44,7 +44,7 @@ def test_group_flow(client):
     # 4. Verify player count is now 2
     # We can fetch the group list or details if available, 
     # but for now let's list groups as the player
-    list_resp = client.get("/groups", headers={"Authorization": f"Bearer {player_token}"})
+    list_resp = client.get("/api/groups", headers={"Authorization": f"Bearer {player_token}"})
     assert list_resp.status_code == 200
     groups = list_resp.json()
     # Find our group

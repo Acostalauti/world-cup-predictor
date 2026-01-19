@@ -49,7 +49,7 @@ def client(test_client):
 
 def test_register_and_login(client):
     # Register
-    response = client.post("/auth/register", json={
+    response = client.post("/api/auth/register", json={
         "email": "test@example.com",
         "password": "password123",
         "name": "Test User"
@@ -61,7 +61,7 @@ def test_register_and_login(client):
     token = data["token"]
 
     # Login
-    response = client.post("/auth/login", json={
+    response = client.post("/api/auth/login", json={
         "email": "test@example.com",
         "password": "password123"
     })
@@ -70,7 +70,7 @@ def test_register_and_login(client):
 
 def test_get_me(client):
     # Register
-    response = client.post("/auth/register", json={
+    response = client.post("/api/auth/register", json={
         "email": "test@example.com",
         "password": "password123",
         "name": "Test User"
@@ -78,13 +78,13 @@ def test_get_me(client):
     token = response.json()["token"]
     
     # Get Me
-    response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json()["email"] == "test@example.com"
 
 def test_create_group(client):
     # Register
-    response = client.post("/auth/register", json={
+    response = client.post("/api/auth/register", json={
         "email": "admin@example.com",
         "password": "password123",
         "name": "Admin User"
@@ -92,7 +92,7 @@ def test_create_group(client):
     token = response.json()["token"]
     
     # Create Group
-    response = client.post("/groups", json={
+    response = client.post("/api/groups", json={
         "name": "Test Group",
         "description": "A test group",
         "scoringSystem": "classic"
@@ -107,7 +107,7 @@ def test_create_group(client):
 
 def test_create_match(client):
     # Register
-    response = client.post("/auth/register", json={
+    response = client.post("/api/auth/register", json={
         "email": "admin@example.com",
         "password": "password123",
         "name": "Admin User"
@@ -115,7 +115,7 @@ def test_create_match(client):
     token = response.json()["token"]
     
     # Create Match
-    response = client.post("/matches", json={
+    response = client.post("/api/matches", json={
         "homeTeam": "Team A",
         "awayTeam": "Team B",
         "date": "2026-06-15",
@@ -128,13 +128,13 @@ def test_create_match(client):
     match_id = data["id"]
     
     # List matches
-    response = client.get("/matches", headers={"Authorization": f"Bearer {token}"})
+    response = client.get("/api/matches", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert len(response.json()) == 1
 
 def test_prediction(client):
     # Register
-    response = client.post("/auth/register", json={
+    response = client.post("/api/auth/register", json={
         "email": "user@example.com",
         "password": "password123",
         "name": "User"
@@ -142,7 +142,7 @@ def test_prediction(client):
     token = response.json()["token"]
     
     # Create Match first (mock admin check skipped in current impl or we allow it)
-    response = client.post("/matches", json={
+    response = client.post("/api/matches", json={
         "homeTeam": "Team A",
         "awayTeam": "Team B",
         "date": "2026-06-15",
@@ -151,7 +151,7 @@ def test_prediction(client):
     match_id = response.json()["id"]
     
     # Create Prediction
-    response = client.post("/predictions", json={
+    response = client.post("/api/predictions", json={
         "matchId": match_id,
         "homeScore": 2,
         "awayScore": 1
