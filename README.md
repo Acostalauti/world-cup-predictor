@@ -292,3 +292,6 @@ Lautaro Acosta + AI
 
 - FIFA for match data and fixtures
 - The open-source community for the amazing tools and libraries
+
+[AI System Development](ai-system-dev.md)
+
