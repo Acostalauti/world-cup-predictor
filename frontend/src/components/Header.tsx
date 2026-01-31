@@ -1,5 +1,6 @@
-import { Trophy, User, LogOut, ArrowLeft } from "lucide-react";
+import { Trophy, User, LogOut, ArrowLeft, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +14,11 @@ interface HeaderProps {
   userName?: string;
   showBack?: boolean;
   onLogout?: () => void;
+  notificationCount?: number;
+  onNotificationClick?: () => void;
 }
 
-const Header = ({ userName = "Usuario", showBack = false, onLogout }: HeaderProps) => {
+const Header = ({ userName = "Usuario", showBack = false, onLogout, notificationCount = 0, onNotificationClick }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -51,7 +54,27 @@ const Header = ({ userName = "Usuario", showBack = false, onLogout }: HeaderProp
           </div>
         </div>
 
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Notification Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            onClick={onNotificationClick}
+          >
+            <Bell className="w-5 h-5" />
+            {notificationCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs"
+              >
+                {notificationCount > 9 ? '9+' : notificationCount}
+              </Badge>
+            )}
+          </Button>
+
+          {/* User Dropdown */}
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2">
               <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
@@ -75,6 +98,7 @@ const Header = ({ userName = "Usuario", showBack = false, onLogout }: HeaderProp
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );

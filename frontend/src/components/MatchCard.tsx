@@ -1,4 +1,4 @@
-import { Calendar, Clock, Lock, Check, MapPin, Trophy } from "lucide-react";
+import { Calendar, Clock, Lock, Check, MapPin, Trophy, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,9 @@ interface MatchCardProps {
   group?: string | null;
   stadium?: string | null;
   city?: string | null;
-  userPrediction?: { home: number; away: number } | null;
+  userPrediction?: { home: number; away: number; points?: number; pointsBreakdown?: string } | null;
   onSavePrediction?: (matchId: string, home: number, away: number) => void;
+  editable?: boolean; // From backend calculation
 }
 
 const MatchCard = ({
@@ -45,6 +46,7 @@ const MatchCard = ({
   city,
   userPrediction,
   onSavePrediction,
+  editable = true, // Default to true for backward compatibility
 }: MatchCardProps) => {
   const [homePred, setHomePred] = useState(userPrediction?.home?.toString() || "");
   const [awayPred, setAwayPred] = useState(userPrediction?.away?.toString() || "");
@@ -60,7 +62,31 @@ const MatchCard = ({
     }
   };
 
-  const canPredict = status === "upcoming";
+  const canPredict = status === "upcoming" && editable;
+  
+  const getPointsLabel = (points?: number, breakdown?: string) => {
+    if (!points && points !== 0) return null;
+    
+    const labels: Record<string, string> = {
+      exact_result: "¡Exacto!",
+      winner_and_goal_diff: "Ganador+Diff",
+      winner_only: "Ganador",
+      one_score_correct: "Parcial",
+      no_match: "Sin puntos",
+    };
+    
+    const color = 
+      points === 5 ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" :
+      points >= 3 ? "bg-green-500/10 text-green-600 border-green-500/20" :
+      points > 0 ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+      "bg-muted text-muted-foreground";
+    
+    return (
+      <Badge variant="outline" className={`text-[10px] font-bold ${color}`}>
+        {points === 0 ? "0" : `+${points}`} {breakdown && labels[breakdown]}
+      </Badge>
+    );
+  };
 
   const handleSave = () => {
     if (onSavePrediction && homePred !== "" && awayPred !== "") {
@@ -131,7 +157,9 @@ const MatchCard = ({
             ) : (
               <div className="flex flex-col items-center gap-1 text-muted-foreground">
                 <Lock className="w-5 h-5" />
-                <span className="text-xs font-medium">Cerrado</span>
+                <span className="text-xs font-medium">
+                  {!editable && status === "upcoming" ? "Deadline pasado" : "Cerrado"}
+                </span>
               </div>
             )}
 
@@ -185,24 +213,28 @@ const MatchCard = ({
 
         {/* User's saved prediction (when locked or finished) */}
         {!canPredict && userPrediction && (
-          <div className="flex items-center justify-center gap-2 text-xs bg-background/50 py-1.5 rounded border border-border/50">
-            <span className="text-muted-foreground">Tu predicción:</span>
-            <span className="font-bold text-primary">
-              {userPrediction.home} - {userPrediction.away}
-            </span>
-            {status === "finished" && typeof homeScore === 'number' && typeof awayScore === 'number' && (
-              <Badge variant={
-                userPrediction.home === homeScore && userPrediction.away === awayScore ? "default" :
-                  (userPrediction.home > userPrediction.away && homeScore > awayScore) ||
-                    (userPrediction.home < userPrediction.away && homeScore < awayScore) ||
-                    (userPrediction.home === userPrediction.away && homeScore === awayScore) ? "secondary" : "outline"
-              } className="h-4 px-1 text-[10px] ml-1">
-                {userPrediction.home === homeScore && userPrediction.away === awayScore ? "Exacto (+3)" :
-                  (userPrediction.home > userPrediction.away && homeScore > awayScore) ||
-                    (userPrediction.home < userPrediction.away && homeScore < awayScore) ||
-                    (userPrediction.home === userPrediction.away && homeScore === awayScore) ? "Acierto (+1)" : "Fallo"}
-              </Badge>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-center gap-2 text-xs bg-background/50 py-1.5 rounded border border-border/50">
+              <span className="text-muted-foreground">Tu predicción:</span>
+              <span className="font-bold text-primary">
+                {userPrediction.home} - {userPrediction.away}
+              </span>
+            </div>
+            
+            {/* Points display for finished matches */}
+            {status === "finished" && userPrediction.points !== undefined && (
+              <div className="flex items-center justify-center gap-2 py-1.5">
+                {getPointsLabel(userPrediction.points, userPrediction.pointsBreakdown)}
+              </div>
             )}
+          </div>
+        )}
+        
+        {/* Deadline warning for upcoming matches */}
+        {status === "upcoming" && !editable && !userPrediction && (
+          <div className="flex items-center justify-center gap-2 text-xs bg-destructive/10 text-destructive py-1.5 rounded border border-destructive/20">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span className="font-medium">Deadline pasado - No se puede predecir</span>
           </div>
         )}
       </div>
