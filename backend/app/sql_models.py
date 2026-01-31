@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Date
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from .database import Base
 import datetime
+
 
 class User(Base):
     __tablename__ = "users"
@@ -11,46 +12,10 @@ class User(Base):
     name = Column(String, nullable=False)
     role = Column(String, nullable=False, default="player")
     avatar = Column(String, nullable=True)
-    password_hash = Column(String, nullable=True) # Adding simple auth support
+    password_hash = Column(String, nullable=True)  # Adding simple auth support
 
     # Relationships
-    groups_created = relationship("Group", back_populates="admin")
-    memberships = relationship("GroupMember", back_populates="user")
     predictions = relationship("Prediction", back_populates="user")
-
-
-class Group(Base):
-    __tablename__ = "groups"
-
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    description = Column(String, nullable=True)
-    adminId = Column(String, ForeignKey("users.id"))
-    playerCount = Column(Integer, default=0)
-    inviteCode = Column(String, unique=True, index=True)
-    inviteLink = Column(String, nullable=True)
-    scoringSystem = Column(String, default="classic")
-    createdAt = Column(DateTime, default=datetime.datetime.utcnow)
-    status = Column(String, default="active")
-
-    # Relationships
-    admin = relationship("User", back_populates="groups_created")
-    members = relationship("GroupMember", back_populates="group")
-
-
-class GroupMember(Base):
-    __tablename__ = "group_members"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    userId = Column(String, ForeignKey("users.id"))
-    groupId = Column(String, ForeignKey("groups.id"))
-    joinedAt = Column(DateTime, default=datetime.datetime.utcnow)
-    points = Column(Integer, default=0)
-    isAdmin = Column(Boolean, default=False)
-    
-    # Relationships
-    user = relationship("User", back_populates="memberships")
-    group = relationship("Group", back_populates="members")
 
 
 class Match(Base):
@@ -61,18 +26,25 @@ class Match(Base):
     awayTeam = Column(String, nullable=False)
     homeFlag = Column(String, nullable=True)
     awayFlag = Column(String, nullable=True)
-    date = Column(Date, nullable=False)
-    time = Column(String, nullable=True)
+    date = Column(DateTime, nullable=False)  # Changed to DateTime for full timestamp
+    time = Column(
+        String, nullable=True
+    )  # Deprecated, keeping for backward compatibility
     status = Column(String, default="upcoming")
     homeScore = Column(Integer, nullable=True)
     awayScore = Column(Integer, nullable=True)
-    
+
     # New fields
     matchNumber = Column(Integer, nullable=True)
     stage = Column(String, nullable=True)
     group = Column(String, nullable=True)
     stadium = Column(String, nullable=True)
     city = Column(String, nullable=True)
+    fifaMatchId = Column(String, nullable=True, unique=True)  # ID from FIFA API
+    manualOverride = Column(Boolean, default=False)  # Flag for manual result entry
+    updatedAt = Column(
+        DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow
+    )
 
     # Relationships
     predictions = relationship("Prediction", back_populates="match")
@@ -87,8 +59,33 @@ class Prediction(Base):
     homeScore = Column(Integer, nullable=False)
     awayScore = Column(Integer, nullable=False)
     points = Column(Integer, nullable=True)
+    pointsBreakdown = Column(
+        String, nullable=True
+    )  # 'exact_result', 'winner_and_goal_diff', etc
+    notified = Column(Boolean, default=False)  # Has user been notified of points?
     createdAt = Column(DateTime, default=datetime.datetime.utcnow)
+    updatedAt = Column(
+        DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow
+    )
 
     # Relationships
     user = relationship("User", back_populates="predictions")
     match = relationship("Match", back_populates="predictions")
+
+
+class ScraperLog(Base):
+    """Log de ejecuciones del scraper de FIFA"""
+
+    __tablename__ = "scraper_logs"
+
+    id = Column(String, primary_key=True, index=True)
+    executionTime = Column(DateTime, nullable=False)
+    status = Column(String, nullable=False)  # 'success', 'partial', 'failed'
+    matchesChecked = Column(Integer, default=0)
+    matchesUpdated = Column(Integer, default=0)
+    matchesFinished = Column(Integer, default=0)  # Cuántos cambiaron a finished
+    pointsCalculated = Column(Integer, default=0)  # Cuántas predictions se calcularon
+    errorMessage = Column(String, nullable=True)
+    retryCount = Column(Integer, default=0)
+    durationSeconds = Column(Float, nullable=True)
+    createdAt = Column(DateTime, default=datetime.datetime.utcnow)

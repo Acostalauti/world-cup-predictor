@@ -3,26 +3,28 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import auth, users, groups, matches, predictions, admin
+from .routers import auth, users, matches, predictions, admin, admin_matches
 from .database import engine, SessionLocal
 from . import sql_models, seeder
+from .scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(
     title="World Cup Predictor API",
     description="API for the World Cup Predictor application.",
-    version="1.0.0"
+    version="1.0.0",
 )
+
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on application startup."""
     try:
         print("🔄 Initializing database...")
-        
+
         # Create all tables
         sql_models.Base.metadata.create_all(bind=engine)
         print("✅ Database tables created")
-        
+
         # Seed initial data
         db = SessionLocal()
         try:
@@ -30,21 +32,36 @@ async def startup_event():
             print("✅ Database seeding completed")
         finally:
             db.close()
-            
+
+        # Start the scheduler
+        start_scheduler()
+        print("✅ Scheduler started")
+
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
         # Don't raise - allow app to start, but log the error
         import traceback
+
         traceback.print_exc()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown."""
+    try:
+        stop_scheduler()
+        print("✅ Scheduler stopped")
+    except Exception as e:
+        print(f"❌ Scheduler shutdown failed: {e}")
 
 
 # CORS
 origins = [
     "http://localhost:3000",
-    "http://localhost:5173", # Vite default
-    "http://localhost:8080", # Codespaces default
-    "https://*.onrender.com", # Render deployment domains
-    "*" # For development convenience to avoid further issues
+    "http://localhost:5173",  # Vite default
+    "http://localhost:8080",  # Codespaces default
+    "https://*.onrender.com",  # Render deployment domains
+    "*",  # For development convenience to avoid further issues
 ]
 
 app.add_middleware(
@@ -57,14 +74,16 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
-app.include_router(groups.router, prefix="/api")
 app.include_router(matches.router, prefix="/api")
 app.include_router(predictions.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(admin_matches.router, prefix="/api")
+
 
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
 
 # Serve Frontend in Production
 # We assume the frontend build is copied to a 'static' directory in the same relative location
@@ -73,7 +92,11 @@ static_dir = "static"
 if os.path.exists(static_dir):
     # Mount assets (hashed files from Vite build usually go here)
     if os.path.exists(os.path.join(static_dir, "assets")):
-        app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+        app.mount(
+            "/assets",
+            StaticFiles(directory=os.path.join(static_dir, "assets")),
+            name="assets",
+        )
 
     # Serve index.html for the root route
     @app.get("/")
@@ -88,10 +111,13 @@ if os.path.exists(static_dir):
         file_path = os.path.join(static_dir, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
-            
+
         # Otherwise return index.html for client-side routing
         return FileResponse(os.path.join(static_dir, "index.html"))
 else:
+
     @app.get("/")
     def read_root():
-        return {"message": "Welcome to World Cup Predictor API (Frontend not built/served)"}
+        return {
+            "message": "Welcome to World Cup Predictor API (Frontend not built/served)"
+        }
