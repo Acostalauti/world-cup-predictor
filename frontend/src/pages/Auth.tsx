@@ -34,7 +34,7 @@ const Auth = () => {
         });
 
         // Navigate based on role
-        if (user.role === 'platform_admin') {
+        if (user.role === 'admin') {
           navigate("/admin");
         } else {
           navigate("/dashboard");
@@ -60,10 +60,8 @@ const Auth = () => {
 
   const getRoleDescription = (role: string) => {
     switch (role) {
-      case 'platform_admin':
-        return 'Acceso al panel de administración de la plataforma';
-      case 'group_admin':
-        return 'Puedes gestionar tus grupos y ver configuraciones';
+      case 'admin':
+        return 'Acceso al panel de administración';
       default:
         return 'Listo para hacer predicciones';
     }

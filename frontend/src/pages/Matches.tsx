@@ -213,7 +213,11 @@ const Matches = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header onLogout={() => {}} />
+        <Header 
+          userName={currentUser?.name}
+          showBack={true}
+          onLogout={() => {}} 
+        />
         <div className="flex items-center justify-center h-[80vh]">
           <div className="text-lg text-muted-foreground">Cargando partidos...</div>
         </div>
@@ -223,7 +227,11 @@ const Matches = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onLogout={() => {}}>
+      <Header 
+        userName={currentUser?.name}
+        showBack={true}
+        onLogout={() => {}}
+      >
         <Button
           variant="ghost"
           size="icon"

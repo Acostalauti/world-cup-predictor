@@ -107,6 +107,24 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Acciones Rápidas</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-4">
+          <Button onClick={() => navigate("/matches")}>Ver Partidos</Button>
+          <Button variant="outline" onClick={() => navigate("/predictions")}>
+            Mis Predicciones
+          </Button>
+          {currentUser?.role === "admin" && (
+            <Button variant="secondary" onClick={() => navigate("/admin")}>
+              Panel Admin
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Global Ranking */}
       <Card>
         <CardHeader>
@@ -173,24 +191,6 @@ export default function Dashboard() {
               })
             )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-4">
-          <Button onClick={() => navigate("/matches")}>Ver Partidos</Button>
-          <Button variant="outline" onClick={() => navigate("/predictions")}>
-            Mis Predicciones
-          </Button>
-          {currentUser?.role === "admin" && (
-            <Button variant="secondary" onClick={() => navigate("/admin")}>
-              Panel Admin
-            </Button>
-          )}
         </CardContent>
       </Card>
     </div>

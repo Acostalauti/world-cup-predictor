@@ -20,13 +20,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 160 30% 10%;
 
-    /* Primary - Deep Pitch Green */
-    --primary: 152 60% 28%;
+    /* Primary - Vibrant Orange (Mundial/Soccer inspired) */
+    --primary: 25 85% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light sage */
-    --secondary: 150 25% 94%;
-    --secondary-foreground: 152 60% 28%;
+    /* Secondary - Light peach */
+    --secondary: 25 25% 94%;
+    --secondary-foreground: 25 85% 40%;
 
     /* Muted */
     --muted: 150 15% 92%;
@@ -43,7 +43,7 @@
     /* Borders & Inputs */
     --border: 150 20% 88%;
     --input: 150 20% 88%;
-    --ring: 152 60% 28%;
+    --ring: 25 85% 50%;
 
     --radius: 0.75rem;
 
@@ -52,8 +52,8 @@
     --gold-light: 45 90% 65%;
     --silver: 210 10% 60%;
     --bronze: 30 60% 50%;
-    --pitch-green: 152 60% 28%;
-    --pitch-green-light: 152 50% 45%;
+    --pitch-green: 25 85% 50%;
+    --pitch-green-light: 45 90% 65%;
     --pitch-pattern: 150 20% 95%;
     --success: 152 60% 40%;
     --warning: 45 90% 50%;
@@ -62,12 +62,12 @@
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 160 30% 10%;
-    --sidebar-primary: 152 60% 28%;
+    --sidebar-primary: 25 85% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 150 25% 94%;
-    --sidebar-accent-foreground: 152 60% 28%;
+    --sidebar-accent-foreground: 25 85% 40%;
     --sidebar-border: 150 20% 88%;
-    --sidebar-ring: 152 60% 28%;
+    --sidebar-ring: 25 85% 50%;
   }
 
   .dark {
@@ -80,7 +80,7 @@
     --popover: 160 25% 12%;
     --popover-foreground: 150 20% 95%;
 
-    --primary: 152 55% 45%;
+    --primary: 25 80% 55%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 160 20% 18%;
@@ -97,16 +97,16 @@
 
     --border: 160 20% 20%;
     --input: 160 20% 20%;
-    --ring: 152 55% 45%;
+    --ring: 25 80% 55%;
 
     --sidebar-background: 160 25% 10%;
     --sidebar-foreground: 150 20% 95%;
-    --sidebar-primary: 152 55% 45%;
+    --sidebar-primary: 25 80% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 160 20% 18%;
     --sidebar-accent-foreground: 150 20% 90%;
     --sidebar-border: 160 20% 20%;
-    --sidebar-ring: 152 55% 45%;
+    --sidebar-ring: 25 80% 55%;
   }
 }
 
@@ -138,7 +138,7 @@
   }
 
   .gradient-pitch {
-    background: linear-gradient(135deg, hsl(var(--pitch-green)) 0%, hsl(var(--pitch-green-light)) 100%);
+    background: linear-gradient(135deg, hsl(25, 85%, 50%) 0%, hsl(45, 90%, 65%) 100%);
   }
 
   .glass {
