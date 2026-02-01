@@ -5,27 +5,30 @@ from ..models import Match, CreateMatchRequest, UpdateMatchRequest, User, Predic
 from ..database import get_db
 from .. import crud
 from .auth import get_current_user
+from .predictions import is_prediction_editable
 import uuid
 from datetime import datetime
 
 router = APIRouter()
 
+
 @router.get("/matches", response_model=List[Match])
 def list_matches(
     status: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     matches = crud.get_matches(db, status=status)
-    
+
     # Enrich each match with user's prediction if exists
     enriched_matches = []
     for match in matches:
         prediction = crud.get_prediction(db, match.id, current_user.id)
-        # Convert SQLAlchemy model to Pydantic compatible dict, handling potentially missing fields?
-        # Actually with from_attributes=True, we can pass the ORM object mostly, 
-        # but here we need to modify it. Pydantic models are immutable-ish or expecting init args.
-        # Safest is to dump.
+
+        # Calculate editable field based on deadline and status
+        editable = is_prediction_editable(match)
+
+        # Build complete dict with ALL fields including new ones
         match_dict = {
             "id": match.id,
             "homeTeam": match.homeTeam,
@@ -41,26 +44,31 @@ def list_matches(
             "stage": match.stage,
             "group": match.group,
             "stadium": match.stadium,
-            "city": match.city
+            "city": match.city,
+            "fifaMatchId": match.fifaMatchId,
+            "manualOverride": match.manualOverride,
+            "updatedAt": match.updatedAt,
+            "editable": editable,
         }
-        
+
         if prediction:
-             match_dict['userPrediction'] = prediction
-             
+            match_dict["userPrediction"] = prediction
+
         enriched_matches.append(Match(**match_dict))
-    
+
     return enriched_matches
+
 
 @router.post("/matches", response_model=Match, status_code=201)
 def create_match(
     request: CreateMatchRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     # Check if admin
-    if current_user.role not in ['platform_admin', 'group_admin']:
-         # In real app verify permissions.
-         pass
+    if current_user.role not in ["platform_admin", "group_admin"]:
+        # In real app verify permissions.
+        pass
 
     match_id = str(uuid.uuid4())
     new_match_data = Match(
@@ -72,23 +80,24 @@ def create_match(
         date=request.date,
         time=request.time,
         status=request.status,
-        homeScore=0, 
-        awayScore=0
+        homeScore=0,
+        awayScore=0,
     )
-    # The models.Match is Pydantic, crud expects models.Match (Pydantic) 
+    # The models.Match is Pydantic, crud expects models.Match (Pydantic)
     # and converts to sql_models.Match.
     created_match = crud.create_match(db, new_match_data)
     return created_match
+
 
 @router.put("/matches/{id}", response_model=Match)
 def update_match(
     id: str,
     request: UpdateMatchRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-     # Admin check...
-    
+    # Admin check...
+
     updated_match = crud.update_match(db, id, **request.model_dump(exclude_unset=True))
     if not updated_match:
         raise HTTPException(status_code=404, detail="Match not found")

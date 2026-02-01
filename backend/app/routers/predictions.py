@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from ..models import Prediction, CreatePredictionRequest, User, UserRanking
+from ..models import (
+    Prediction,
+    CreatePredictionRequest,
+    User,
+    UserRanking,
+    PredictionWithMatch,
+)
 from ..database import get_db
 from .. import crud, sql_models
 from .auth import get_current_user
@@ -104,6 +110,74 @@ def get_predictions(
         query = query.filter(sql_models.Prediction.matchId == matchId)
 
     return query.all()
+
+
+@router.get("/predictions/detailed", response_model=List[PredictionWithMatch])
+def get_predictions_detailed(
+    userId: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get predictions with full match data via JOIN.
+
+    Filters:
+    - userId: Filter by user (defaults to current user)
+    - status: Filter by match status (upcoming/live/finished)
+
+    Security: Users can only see their own predictions unless admin.
+    """
+
+    # Build query with JOIN
+    query = db.query(sql_models.Prediction).join(
+        sql_models.Match, sql_models.Prediction.matchId == sql_models.Match.id
+    )
+
+    # Security check: only own predictions unless admin
+    if userId:
+        if (
+            current_user.role not in ["admin", "platform_admin", "group_admin"]
+            and userId != current_user.id
+        ):
+            raise HTTPException(status_code=403, detail="Can only view own predictions")
+        query = query.filter(sql_models.Prediction.userId == userId)
+    else:
+        # Default: only current user's predictions
+        query = query.filter(sql_models.Prediction.userId == current_user.id)
+
+    # Filter by match status if provided
+    if status:
+        query = query.filter(sql_models.Match.status == status)
+
+    # Order by match date descending (most recent first)
+    query = query.order_by(sql_models.Match.date.desc())
+
+    predictions = query.all()
+
+    # Build response with match data
+    result = []
+    for pred in predictions:
+        match = (
+            db.query(sql_models.Match)
+            .filter(sql_models.Match.id == pred.matchId)
+            .first()
+        )
+        result.append(
+            PredictionWithMatch(
+                id=pred.id,
+                matchId=pred.matchId,
+                userId=pred.userId,
+                homeScore=pred.homeScore,
+                awayScore=pred.awayScore,
+                points=pred.points,
+                pointsBreakdown=pred.pointsBreakdown,
+                notified=pred.notified,
+                match=match,
+            )
+        )
+
+    return result
 
 
 @router.post("/predictions", response_model=Prediction)

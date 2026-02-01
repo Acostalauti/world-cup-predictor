@@ -30,6 +30,23 @@ class Prediction(BaseModel):
         from_attributes = True
 
 
+class PredictionWithMatch(BaseModel):
+    """Prediction with full match data (for detailed predictions view)"""
+
+    id: str
+    matchId: str
+    userId: str
+    homeScore: int
+    awayScore: int
+    points: Optional[int] = None
+    pointsBreakdown: Optional[str] = None
+    notified: bool = False
+    match: "Match"  # Full match object included (forward reference)
+
+    class Config:
+        from_attributes = True
+
+
 # Match Models
 class Match(BaseModel):
     id: str
