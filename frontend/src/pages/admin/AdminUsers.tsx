@@ -1,4 +1,4 @@
-import { Users, Search, MoreVertical, Ban, Shield, Mail, Trash2 } from "lucide-react";
+import { Users, Search, MoreVertical, Shield, Mail, Trash2, UserCog, Ban, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,20 +22,17 @@ import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { client } from "@/api/client";
 import type { components } from "@/types/api";
+import { useToast } from "@/hooks/use-toast";
 
 type User = components["schemas"]["User"];
-type Group = components["schemas"]["Group"];
-type GroupMember = components["schemas"]["GroupMember"];
 
 const AdminUsers = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [groupFilter, setGroupFilter] = useState("all");
   const [users, setUsers] = useState<User[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [groupMembers, setGroupMembers] = useState<Map<string, string[]>>(new Map());
   const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
@@ -44,40 +41,57 @@ const AdminUsers = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [usersRes, groupsRes] = await Promise.all([
-          client.GET("/users"),
-          client.GET("/groups", { params: { query: { filter: "all" } } })
-        ]);
-
-        if (usersRes.data) {
-          setUsers(usersRes.data);
-        }
-
-        if (groupsRes.data) {
-          setGroups(groupsRes.data);
-
-          // Fetch members for each group
-          const membersMap = new Map<string, string[]>();
-          for (const group of groupsRes.data) {
-            const { data: members } = await client.GET("/groups/{id}/ranking", {
-              params: { path: { id: group.id! } }
-            });
-            if (members) {
-              membersMap.set(group.id!, members.map(m => m.userId!));
-            }
-          }
-          setGroupMembers(membersMap);
-        }
-      } catch (error) {
-        console.error("Failed to fetch data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const { data } = await client.GET("/api/users");
+      if (data) {
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePromote = async (userId: string) => {
+    try {
+      const { error } = await client.POST("/api/admin/users/{user_id}/promote", {
+        params: { path: { user_id: userId } }
+      });
+      
+      if (!error) {
+        toast({ title: "Usuario promovido a Admin" });
+        fetchUsers(); // Refresh list
+      } else {
+        toast({ title: "Error al promover usuario", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Error promoting user:", error);
+      toast({ title: "Error al promover usuario", variant: "destructive" });
+    }
+  };
+
+  const handleDemote = async (userId: string) => {
+    try {
+      const { error } = await client.POST("/api/admin/users/{user_id}/demote", {
+        params: { path: { user_id: userId } }
+      });
+      
+      if (!error) {
+        toast({ title: "Usuario degradado a Player" });
+        fetchUsers(); // Refresh list
+      } else {
+        toast({ title: "Error al degradar usuario", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Error demoting user:", error);
+      toast({ title: "Error al degradar usuario", variant: "destructive" });
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -85,21 +99,13 @@ const AdminUsers = () => {
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
 
-    let matchesGroup = true;
-    if (groupFilter !== "all") {
-      const groupUserIds = groupMembers.get(groupFilter) || [];
-      matchesGroup = groupUserIds.includes(user.id);
-    }
-
-    return matchesSearch && matchesRole && matchesGroup;
+    return matchesSearch && matchesRole;
   });
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case "platform_admin":
+      case "admin":
         return "bg-destructive/10 text-destructive";
-      case "group_admin":
-        return "bg-amber-500/10 text-amber-600";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -107,10 +113,8 @@ const AdminUsers = () => {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case "platform_admin":
-        return "Admin Plataforma";
-      case "group_admin":
-        return "Admin Grupo";
+      case "admin":
+        return "Admin";
       default:
         return "Jugador";
     }
@@ -153,21 +157,7 @@ const AdminUsers = () => {
             <SelectContent>
               <SelectItem value="all">Todos los roles</SelectItem>
               <SelectItem value="player">Jugadores</SelectItem>
-              <SelectItem value="group_admin">Admins Grupo</SelectItem>
-              <SelectItem value="platform_admin">Admins Plataforma</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={groupFilter} onValueChange={setGroupFilter}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Filtrar por grupo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los grupos</SelectItem>
-              {groups.map((group) => (
-                <SelectItem key={group.id} value={group.id!}>
-                  {group.name}
-                </SelectItem>
-              ))}
+              <SelectItem value="admin">Administradores</SelectItem>
             </SelectContent>
           </Select>
         </section>
@@ -191,7 +181,7 @@ const AdminUsers = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-foreground">
-                {users.filter((u) => u.role !== "player").length}
+                {users.filter((u) => u.role === "admin").length}
               </div>
               <div className="text-xs text-muted-foreground">Admins</div>
             </CardContent>
@@ -237,10 +227,20 @@ const AdminUsers = () => {
                           <Mail className="w-4 h-4 mr-2" />
                           Enviar Email
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Shield className="w-4 h-4 mr-2" />
-                          Cambiar Rol
-                        </DropdownMenuItem>
+                        {user.role === "player" ? (
+                          <DropdownMenuItem onClick={() => handlePromote(user.id!)}>
+                            <ArrowUp className="w-4 h-4 mr-2" />
+                            Promover a Admin
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem 
+                            onClick={() => handleDemote(user.id!)}
+                            disabled={user.id === currentUser?.id}
+                          >
+                            <ArrowDown className="w-4 h-4 mr-2" />
+                            Degradar a Player
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
                           <Ban className="w-4 h-4 mr-2" />

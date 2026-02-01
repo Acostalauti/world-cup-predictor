@@ -38,8 +38,8 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         const [statsRes, usersRes] = await Promise.all([
-          client.GET("/admin/stats"),
-          client.GET("/users")
+          client.GET("/api/admin/stats"),
+          client.GET("/api/users")
         ]);
 
         if (statsRes.data) {

@@ -12,7 +12,7 @@ const authMiddleware: Middleware = {
 };
 
 export const client = createClient<paths>({
-    baseUrl: import.meta.env.VITE_API_URL || "/api",
+    baseUrl: import.meta.env.VITE_API_URL || "",
 });
 
 client.use(authMiddleware);

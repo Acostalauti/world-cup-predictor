@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const { data, error } = await client.GET("/auth/me");
+          const { data, error } = await client.GET("/api/auth/me");
           if (data) {
             setCurrentUser(data);
           } else {
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<User | null> => {
-    const { data, error } = await client.POST("/auth/login", {
+    const { data, error } = await client.POST("/api/auth/login", {
       body: { email, password },
     });
 
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (email: string, password: string, name: string): Promise<User | null> => {
-    const { data, error } = await client.POST("/auth/register", {
+    const { data, error } = await client.POST("/api/auth/register", {
       body: { email, password, name },
     });
 
