@@ -76,8 +76,8 @@ const Auth = () => {
             <Trophy className="w-8 h-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Prode Mundial</h1>
-            <p className="text-sm text-muted-foreground">FIFA 2026</p>
+            <h1 className="text-2xl font-bold text-foreground">TaliProde</h1>
+            <p className="text-sm text-muted-foreground">Mundial FIFA 2026</p>
           </div>
         </div>
       </div>
@@ -184,7 +184,7 @@ const Auth = () => {
       {/* Footer */}
       <footer className="py-6 text-center">
         <p className="text-xs text-muted-foreground">
-          © 2026 Prode Mundial. Hecho con ⚽ para los fanáticos del fútbol.
+          © 2026 Taligent. Hecho con ⚽ para los fanáticos del fútbol.
         </p>
       </footer>
     </div>

@@ -47,9 +47,9 @@ const Header = ({ userName = "Usuario", showBack = false, onLogout, notification
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold text-foreground leading-tight">
-                Prode Mundial
+                TaliProde
               </h1>
-              <p className="text-xs text-muted-foreground -mt-0.5">FIFA 2026</p>
+              <p className="text-xs text-muted-foreground -mt-0.5">Mundial FIFA 2026</p>
             </div>
           </div>
         </div>

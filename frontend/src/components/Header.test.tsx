@@ -15,7 +15,7 @@ describe('Header', () => {
 
     it('renders application title', () => {
         renderHeader();
-        expect(screen.getByText('Prode Mundial')).toBeInTheDocument();
+        expect(screen.getByText('TaliProde')).toBeInTheDocument();
     });
 
     it('displays correct username when provided', () => {

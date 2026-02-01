@@ -22,7 +22,7 @@ const AdminSettings = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [settings, setSettings] = useState({
-    siteName: "Prode Mundial",
+    siteName: "TaliProde",
     siteDescription: "La mejor plataforma de predicciones de fútbol",
     maintenanceMode: false,
     allowRegistration: true,

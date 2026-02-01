@@ -91,7 +91,7 @@ const AdminDashboard = () => {
             Panel de Administración
           </h2>
           <p className="text-muted-foreground">
-            Gestiona la plataforma Prode Mundial
+            Gestiona la plataforma TaliProde
           </p>
         </section>
 

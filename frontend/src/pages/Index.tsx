@@ -38,10 +38,10 @@ const Index = () => {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-            Prode Mundial
+            TaliProde
           </h1>
           <p className="text-xl md:text-2xl text-primary font-semibold mb-4">
-            FIFA 2026
+            Mundial FIFA 2026
           </p>
           <p className="text-muted-foreground max-w-md mx-auto mb-8">
             Compite con tus amigos prediciendo los resultados del Mundial.
@@ -114,7 +114,7 @@ const Index = () => {
             onClick={() => navigate("/auth")}
             className="group"
           >
-            Crear mi grupo
+            Comenzar ahora
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
@@ -127,13 +127,13 @@ const Index = () => {
             <div className="w-8 h-8 rounded-lg gradient-pitch flex items-center justify-center">
               <Trophy className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">Prode Mundial 2026</span>
+            <span className="font-semibold text-foreground">TaliProde Mundial 2026</span>
           </div>
           <p className="text-xs text-muted-foreground">
             Hecho con ⚽ para los fanáticos del fútbol. 100% gratuito, sin publicidad.
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            © 2026 Prode Mundial. Todos los derechos reservados.
+            © 2026 Taligent. Todos los derechos reservados.
           </p>
         </div>
       </footer>
