@@ -183,8 +183,8 @@ const MatchCard = ({
           {stadium && (
             <div className="flex items-center gap-1.5 overflow-hidden">
               <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
-              <span className="truncate" title={`${stadium}, ${city}`}>
-                {stadium}{city ? `, ${city}` : ''}
+              <span className="truncate" title={stadium || ''}>
+                {stadium}
               </span>
             </div>
           )}

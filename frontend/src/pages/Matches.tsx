@@ -263,75 +263,65 @@ const Matches = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-8">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Partidos
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Total
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.total}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-xl sm:text-2xl font-bold">{stats.total}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">partidos</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Predicciones Realizadas
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Predichas
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{stats.predicted}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.predicted}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">completadas</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Pendientes por Predecir
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Pendientes
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Partidos Finalizados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-muted-foreground">
-                {stats.finished}
-              </div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">por jugar</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+          <CardHeader className="py-3 sm:py-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
               Filtros
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-4">
               {/* Search */}
               <Input
                 placeholder="Buscar equipo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
+                className="w-full col-span-2 sm:col-span-1"
               />
 
               {/* Status Filter */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -344,7 +334,7 @@ const Matches = () => {
 
               {/* Stage Filter */}
               <Select value={stageFilter} onValueChange={setStageFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Fase" />
                 </SelectTrigger>
                 <SelectContent>
@@ -359,7 +349,7 @@ const Matches = () => {
 
               {/* Group Filter */}
               <Select value={groupFilter} onValueChange={setGroupFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Grupo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -374,7 +364,7 @@ const Matches = () => {
 
               {/* Prediction Filter */}
               <Select value={predictionFilter} onValueChange={setPredictionFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Predicción" />
                 </SelectTrigger>
                 <SelectContent>
@@ -389,9 +379,9 @@ const Matches = () => {
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="w-full"
+                  className="w-full col-span-2 sm:col-span-1 h-9 text-sm"
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Limpiar
                 </Button>
               )}
@@ -415,7 +405,7 @@ const Matches = () => {
                 {/* Date Header */}
                 <div className="flex items-center gap-3 mb-4">
                   <Calendar className="h-5 w-5 text-primary" />
-                  <h2 className="text-2xl font-bold capitalize">{date}</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold capitalize">{date}</h2>
                   <div className="flex-1 h-px bg-border" />
                 </div>
 

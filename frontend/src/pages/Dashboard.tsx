@@ -64,45 +64,45 @@ export default function Dashboard() {
       </div>
 
       {/* User Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tu Posición</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Tu Posición</CardTitle>
+            <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl font-bold">
               {userRank ? `#${userRank.position}` : "-"}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               de {ranking.length} jugadores
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Puntos Totales</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Puntos Totales</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{userRank?.points || 0}</div>
-            <p className="text-xs text-muted-foreground">puntos acumulados</p>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl font-bold">{userRank?.points || 0}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">puntos acumulados</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">
               Predicciones Correctas
             </CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl font-bold">
               {userRank?.correctPredictions || 0}
             </div>
-            <p className="text-xs text-muted-foreground">aciertos</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">aciertos</p>
           </CardContent>
         </Card>
       </div>
@@ -112,13 +112,26 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle>Acciones Rápidas</CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-4">
-          <Button onClick={() => navigate("/matches")}>Ver Partidos</Button>
-          <Button variant="outline" onClick={() => navigate("/predictions")}>
+        <CardContent className="flex flex-wrap gap-2 sm:gap-4">
+          <Button 
+            onClick={() => navigate("/matches")}
+            className="flex-1 min-w-[120px] sm:flex-initial"
+          >
+            Ver Partidos
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/predictions")}
+            className="flex-1 min-w-[120px] sm:flex-initial"
+          >
             Mis Predicciones
           </Button>
           {currentUser?.role === "admin" && (
-            <Button variant="secondary" onClick={() => navigate("/admin")}>
+            <Button 
+              variant="secondary" 
+              onClick={() => navigate("/admin")}
+              className="flex-1 min-w-[120px] sm:flex-initial"
+            >
               Panel Admin
             </Button>
           )}

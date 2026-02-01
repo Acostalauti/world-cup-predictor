@@ -1,4 +1,4 @@
-import { Trophy, ArrowRight, Users, Target, Eye } from "lucide-react";
+import { Trophy, ArrowRight, Target, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -7,9 +7,9 @@ const Index = () => {
 
   const features = [
     {
-      icon: Users,
-      title: "Grupos privados",
-      description: "Crea grupos con amigos y compite entre ustedes",
+      icon: Trophy,
+      title: "Premios",
+      description: "Hay premios para los primeros puestos del ranking",
     },
     {
       icon: Target,
@@ -44,8 +44,7 @@ const Index = () => {
             Mundial FIFA 2026
           </p>
           <p className="text-muted-foreground max-w-md mx-auto mb-8">
-            Compite con tus amigos prediciendo los resultados del Mundial.
-            Sin publicidad. Sin apuestas. Solo diversión.
+            Compite con tus compañeros prediciendo los resultados del Mundial mientras alentamos juntos a la Selección
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -105,8 +104,7 @@ const Index = () => {
             ¿Listo para demostrar quién sabe más de fútbol?
           </h2>
           <p className="text-primary-foreground/80 mb-8">
-            El Mundial 2026 está por comenzar. Crea tu grupo ahora y prepárate
-            para competir.
+            El Mundial 2026 está por comenzar. Carga tus predicciones...
           </p>
           <Button
             variant="gold"
@@ -130,7 +128,7 @@ const Index = () => {
             <span className="font-semibold text-foreground">TaliProde Mundial 2026</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Hecho con ⚽ para los fanáticos del fútbol. 100% gratuito, sin publicidad.
+            Hecho con ⚽ para los fanáticos del fútbol.
           </p>
           <p className="text-xs text-muted-foreground mt-2">
             © 2026 Taligent. Todos los derechos reservados.

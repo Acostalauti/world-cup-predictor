@@ -158,15 +158,9 @@ const AdminMatches = () => {
 
       <main className="container py-6 pb-8">
         <section className="mb-6 animate-fade-in">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-green-500" />
-              <h2 className="text-2xl font-bold text-foreground">Gestionar Partidos</h2>
-            </div>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Partido
-            </Button>
+          <div className="flex items-center gap-2 mb-2">
+            <Calendar className="w-6 h-6 text-green-500" />
+            <h2 className="text-2xl font-bold text-foreground">Gestionar Partidos</h2>
           </div>
           <p className="text-muted-foreground">
             Crea, edita y administra los partidos del torneo
