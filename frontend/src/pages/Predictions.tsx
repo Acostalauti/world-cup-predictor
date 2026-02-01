@@ -59,6 +59,8 @@ const Predictions = () => {
       }
 
       if (data) {
+        // Cast to unknown first to bypass openapi-fetch type validation
+        // Backend returns PredictionWithMatch which isn't in OpenAPI schema
         setPredictions(data as unknown as PredictionWithMatch[]);
       }
     } catch (error) {

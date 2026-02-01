@@ -58,7 +58,9 @@ const Matches = () => {
       }
 
       if (data) {
-        setMatches(data as Match[]);
+        // Cast to unknown first to bypass openapi-fetch type validation
+        // Backend returns extended fields (editable, fifaMatchId, etc) not in OpenAPI schema
+        setMatches(data as unknown as Match[]);
       }
     } catch (error) {
       toast.error("Error al cargar partidos");

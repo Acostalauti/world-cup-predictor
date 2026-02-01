@@ -9,9 +9,12 @@ type Prediction = components["schemas"]["Prediction"];
 interface NotificationCenterProps {
   predictions: Prediction[];
   onClose: () => void;
+  isOpen: boolean;
 }
 
-const NotificationCenter = ({ predictions, onClose }: NotificationCenterProps) => {
+const NotificationCenter = ({ predictions, onClose, isOpen }: NotificationCenterProps) => {
+  // Early return if not open to prevent rendering
+  if (!isOpen) return null;
   const getPointsIcon = (points: number) => {
     if (points === 5) return <Trophy className="w-5 h-5 text-yellow-500" />;
     if (points >= 3) return <Award className="w-5 h-5 text-green-500" />;

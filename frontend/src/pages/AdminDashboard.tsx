@@ -72,12 +72,11 @@ const AdminDashboard = () => {
         onNotificationClick={openNotificationCenter}
       />
 
-      {isOpen && (
-        <NotificationCenter
-          predictions={unnotifiedPredictions}
-          onClose={closeNotificationCenter}
-        />
-      )}
+      <NotificationCenter
+        isOpen={isOpen}
+        predictions={unnotifiedPredictions}
+        onClose={closeNotificationCenter}
+      />
 
       <main className="container py-6 pb-8">
         {/* Admin Badge */}
