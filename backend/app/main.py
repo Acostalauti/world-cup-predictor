@@ -3,15 +3,29 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from dotenv import load_dotenv
 from .routers import auth, users, matches, predictions, admin, admin_matches
 from .database import engine, SessionLocal
 from . import sql_models, seeder
 from .scheduler import start_scheduler, stop_scheduler
 
+# Load environment variables
+load_dotenv()
+
 app = FastAPI(
     title="World Cup Predictor API",
     description="API for the World Cup Predictor application.",
     version="1.0.0",
+)
+
+# Add session middleware (required for OAuth)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET_KEY", "your-secret-key-change-in-production"),
+    max_age=600,  # 10 minutos - suficiente para completar el flujo OAuth
+    same_site="lax",  # Permite cookies en redirects cross-site (Google → backend)
+    https_only=False,  # False en desarrollo (localhost usa HTTP, no HTTPS)
 )
 
 
@@ -61,6 +75,7 @@ origins = [
     "http://localhost:5173",  # Vite default
     "http://localhost:8080",  # Codespaces default
     "https://*.onrender.com",  # Render deployment domains
+    os.getenv("FRONTEND_URL", "http://localhost:8080"),  # From .env
     "*",  # For development convenience to avoid further issues
 ]
 
