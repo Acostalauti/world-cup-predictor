@@ -8,7 +8,7 @@ class User(BaseModel):
     id: str
     email: EmailStr
     name: str
-    role: Literal["player", "admin"]
+    role: Literal["player", "admin", "platform_admin", "group_admin"]
     avatar: Optional[str] = None
 
     class Config:
