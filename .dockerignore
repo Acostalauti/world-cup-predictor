@@ -1,0 +1,46 @@
+# Git
+.git/
+.github/
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# Env files
+.env
+**/.env
+
+# Docs & misc root files
+*.md
+*.yaml
+*.yml
+AGENTS.md
+ai-system-dev.md
+scripts/
+package.json
+package-lock.json
+
+# Frontend: dependencies and build output (rebuilt inside Docker)
+frontend/node_modules/
+frontend/dist/
+frontend/.dockerignore
+frontend/iTerm2
+frontend/*.log
+
+# Backend: dev artifacts and test files
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/tests/
+backend/tests_integration/
+backend/app.db
+backend/static/
+backend/.dockerignore
+backend/reset_admin.py
+backend/verify_seed.py
+backend/Makefile
+backend/*.log
