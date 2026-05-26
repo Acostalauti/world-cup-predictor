@@ -26,7 +26,7 @@ router = APIRouter()
 
 def require_admin(current_user: User) -> User:
     """Helper to enforce admin role"""
-    if current_user.role != "admin":
+    if current_user.role not in ["admin", "platform_admin"]:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
