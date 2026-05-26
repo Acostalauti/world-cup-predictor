@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 from .routers import auth, users, matches, predictions, admin, admin_matches
-from .database import engine, SessionLocal
+from .database import engine, SessionLocal, run_migrations
 from . import sql_models, seeder
 from .scheduler import start_scheduler, stop_scheduler
 
@@ -38,6 +38,10 @@ async def startup_event():
         # Create all tables
         sql_models.Base.metadata.create_all(bind=engine)
         print("✅ Database tables created")
+
+        # Apply column migrations (idempotent)
+        run_migrations()
+        print("✅ Database migrations applied")
 
         # Seed initial data
         db = SessionLocal()
