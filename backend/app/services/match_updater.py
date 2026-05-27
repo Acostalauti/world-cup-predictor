@@ -16,6 +16,7 @@ import uuid
 from app import sql_models
 from app.scrapers.fifa_fixture import scrape_fifa_fixture_dict, map_fifa_status
 from app.services.points_calculator import calculate_points
+from app.utils import get_team_flag
 
 logger = logging.getLogger(__name__)
 
@@ -91,11 +92,44 @@ def update_matches_from_scrape(db: Session, scraped_matches: List[Dict]) -> Dict
             # Match no existe en nuestra DB, skip
             continue
 
-        # Detectar cambios
+        # Skip matches with manualOverride set by admin
+        if db_match.manualOverride:
+            continue
+
         changed = False
         newly_finished = False
 
-        # Actualizar scores
+        # Update team names and flags when FIFA confirms them (TBD → real team)
+        home_team = scraped.get("home_team")
+        away_team = scraped.get("away_team")
+
+        if home_team and home_team != db_match.homeTeam:
+            db_match.homeTeam = home_team
+            db_match.homeFlag = get_team_flag(home_team)
+            changed = True
+
+        if away_team and away_team != db_match.awayTeam:
+            db_match.awayTeam = away_team
+            db_match.awayFlag = get_team_flag(away_team)
+            changed = True
+
+        # Update fixture details (date, stadium, city) if provided
+        kickoff = scraped.get("kickoff_parsed")
+        if kickoff and db_match.date != kickoff:
+            db_match.date = kickoff
+            changed = True
+
+        stadium = scraped.get("stadium")
+        if stadium and db_match.stadium != stadium:
+            db_match.stadium = stadium
+            changed = True
+
+        city = scraped.get("city")
+        if city and db_match.city != city:
+            db_match.city = city
+            changed = True
+
+        # Update scores
         home_score = scraped.get("home_score")
         away_score = scraped.get("away_score")
 
@@ -107,13 +141,12 @@ def update_matches_from_scrape(db: Session, scraped_matches: List[Dict]) -> Dict
             db_match.awayScore = away_score
             changed = True
 
-        # Mapear status de FIFA a nuestro status
+        # Map FIFA status to our status
         fifa_status = scraped.get("match_status")
         if fifa_status is not None:
             new_status = map_fifa_status(fifa_status)
 
             if db_match.status != new_status:
-                # Detectar si cambió a finished
                 if db_match.status != "finished" and new_status == "finished":
                     newly_finished = True
                     stats["newly_finished"] += 1
