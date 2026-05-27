@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { client } from "@/api/client";
@@ -22,7 +23,13 @@ import NotificationCenter from "@/components/NotificationCenter";
 import { toast } from "sonner";
 
 const Predictions = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
   const [predictions, setPredictions] = useState<PredictionWithMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
@@ -262,7 +269,7 @@ const Predictions = () => {
         <Header 
           userName={currentUser?.name}
           showBack={true}
-          onLogout={() => {}} 
+          onLogout={handleLogout}
         />
         <div className="flex items-center justify-center h-[80vh]">
           <div className="text-lg text-muted-foreground">
@@ -278,7 +285,7 @@ const Predictions = () => {
       <Header 
         userName={currentUser?.name}
         showBack={true}
-        onLogout={() => {}}
+        onLogout={handleLogout}
       >
         <Button
           variant="ghost"
