@@ -30,18 +30,25 @@ def run_migrations():
     with engine.begin() as conn:
         if is_sqlite:
             # SQLite doesn't support IF NOT EXISTS on ALTER TABLE — check manually
-            existing = {
-                row[1]
-                for row in conn.execute(text("PRAGMA table_info(matches)"))
-            }
-            additions = {
+            matches_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(matches)"))}
+            predictions_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(predictions)"))}
+
+            matches_additions = {
                 "fifaMatchId": "TEXT UNIQUE",
                 "manualOverride": "INTEGER DEFAULT 0",
                 "updatedAt": "DATETIME",
             }
-            for col, definition in additions.items():
-                if col not in existing:
+            predictions_additions = {
+                "pointsBreakdown": "TEXT",
+                "notified": "INTEGER DEFAULT 0",
+                "updatedAt": "DATETIME",
+            }
+            for col, definition in matches_additions.items():
+                if col not in matches_cols:
                     conn.execute(text(f'ALTER TABLE matches ADD COLUMN "{col}" {definition}'))
+            for col, definition in predictions_additions.items():
+                if col not in predictions_cols:
+                    conn.execute(text(f'ALTER TABLE predictions ADD COLUMN "{col}" {definition}'))
         else:
             # PostgreSQL supports IF NOT EXISTS
             conn.execute(text("""
@@ -49,6 +56,24 @@ def run_migrations():
                     ADD COLUMN IF NOT EXISTS "fifaMatchId" VARCHAR UNIQUE,
                     ADD COLUMN IF NOT EXISTS "manualOverride" BOOLEAN DEFAULT FALSE,
                     ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP
+            """))
+            conn.execute(text("""
+                ALTER TABLE predictions
+                    ADD COLUMN IF NOT EXISTS "pointsBreakdown" VARCHAR,
+                    ADD COLUMN IF NOT EXISTS "notified" BOOLEAN DEFAULT FALSE,
+                    ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP
+            """))
+
+        # Migrate date column from DATE to TIMESTAMP if needed (PostgreSQL only)
+        if not is_sqlite:
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF (SELECT data_type FROM information_schema.columns
+                        WHERE table_name='matches' AND column_name='date') = 'date' THEN
+                        ALTER TABLE matches ALTER COLUMN date TYPE TIMESTAMP USING date::timestamp;
+                    END IF;
+                END $$
             """))
 
         # Backfill fifaMatchId from id for rows seeded before this migration
