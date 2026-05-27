@@ -99,19 +99,23 @@ def update_matches_from_scrape(db: Session, scraped_matches: List[Dict]) -> Dict
         changed = False
         newly_finished = False
 
-        # Update team names and flags when FIFA confirms them (TBD → real team)
+        # Update team names and flags — always recalculate flags so mapping fixes apply
         home_team = scraped.get("home_team")
         away_team = scraped.get("away_team")
 
-        if home_team and home_team != db_match.homeTeam:
-            db_match.homeTeam = home_team
-            db_match.homeFlag = get_team_flag(home_team)
-            changed = True
+        if home_team:
+            correct_flag = get_team_flag(home_team)
+            if home_team != db_match.homeTeam or correct_flag != db_match.homeFlag:
+                db_match.homeTeam = home_team
+                db_match.homeFlag = correct_flag
+                changed = True
 
-        if away_team and away_team != db_match.awayTeam:
-            db_match.awayTeam = away_team
-            db_match.awayFlag = get_team_flag(away_team)
-            changed = True
+        if away_team:
+            correct_flag = get_team_flag(away_team)
+            if away_team != db_match.awayTeam or correct_flag != db_match.awayFlag:
+                db_match.awayTeam = away_team
+                db_match.awayFlag = correct_flag
+                changed = True
 
         # Update fixture details (date, stadium, city) if provided
         kickoff = scraped.get("kickoff_parsed")

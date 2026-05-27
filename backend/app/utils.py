@@ -52,14 +52,15 @@ TEAM_FLAGS = {
     "Dinamarca": "🇩🇰", "Denmark": "🇩🇰", "Suecia": "🇸🇪", "Sweden": "🇸🇪",
     "Noruega": "🇳🇴", "Norway": "🇳🇴", "Polonia": "🇵🇱", "Poland": "🇵🇱",
     "Ucrania": "🇺🇦", "Ukraine": "🇺🇦", "Serbia": "🇷🇸", "Austria": "🇦🇹",
-    "República Checa": "🇨🇿", "Czech Republic": "🇨🇿",
+    "República Checa": "🇨🇿", "Czech Republic": "🇨🇿", "Chequia": "🇨🇿",
+    "Bosnia y Herzegovina": "🇧🇦", "Bosnia and Herzegovina": "🇧🇦",
     "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Gales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
     "Irlanda": "🇮🇪", "Ireland": "🇮🇪", "Turquía": "🇹🇷", "Turkey": "🇹🇷",
     "Rumania": "🇷🇴", "Romania": "🇷🇴", "Grecia": "🇬🇷", "Greece": "🇬🇷",
-    
+
     # AFC
     "Japón": "🇯🇵", "Japan": "🇯🇵", "República de Corea": "🇰🇷", "South Korea": "🇰🇷", "Korea": "🇰🇷",
-    "Australia": "🇦🇺", "Irán": "🇮🇷", "Iran": "🇮🇷",
+    "Australia": "🇦🇺", "Irán": "🇮🇷", "Iran": "🇮🇷", "RI de Irán": "🇮🇷",
     "Arabia Saudí": "🇸🇦", "Saudi Arabia": "🇸🇦", "Catar": "🇶🇦", "Qatar": "🇶🇦",
     "Irak": "🇮🇶", "Iraq": "🇮🇶", "Emiratos Árabes Unidos": "🇦🇪", "UAE": "🇦🇪",
     "Uzbekistán": "🇺🇿", "Uzbekistan": "🇺🇿", "Jordania": "🇯🇴", "Jordan": "🇯🇴",
@@ -73,6 +74,7 @@ TEAM_FLAGS = {
     "Malí": "🇲🇱", "Mali": "🇲🇱", "Burkina Faso": "🇧🇫",
     "Sudáfrica": "🇿🇦", "South Africa": "🇿🇦",
     "Islas de Cabo Verde": "🇨🇻", "Cape Verde": "🇨🇻",
+    "República Democrática del Congo": "🇨🇩", "RD Congo": "🇨🇩", "DR Congo": "🇨🇩",
     
     # OFC
     "Nueva Zelanda": "🇳🇿", "New Zealand": "🇳🇿",
